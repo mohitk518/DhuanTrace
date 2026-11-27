@@ -4,7 +4,7 @@
 
 DhuanTrace finds the farm fires satellites miss after 4 p.m., traces whose smoke is reaching a city, and drafts the alert for the district that can act.
 
-**Team Sant:** Mohit Katara and Divyansh Mathur · **Live app:** [add the Cloud Run link here]
+**Team Sant:** Mohit Katara and Divyansh Mathur · **Live app:** https://dhuantrace.vercel.app
 
 ## Problem it solves
 
