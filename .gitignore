@@ -3,3 +3,6 @@ node_modules
 *.zip
 data/
 JUDGE_PREP.md
+.vercel
+dist
+.output

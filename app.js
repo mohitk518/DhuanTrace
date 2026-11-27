@@ -386,7 +386,7 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, () => {
+if (!process.env.VERCEL) server.listen(PORT, () => {
   console.log(`DhuanTrace running on http://localhost:${PORT}`);
   // Warm the heavy statewide computations in the background, so the first visitor does not wait for them
   setTimeout(async () => {
@@ -449,3 +449,5 @@ function scheduleHourly() {
   setTimeout(() => { hourlyJobs(); scheduleHourly(); }, next - Date.now()).unref();
 }
 scheduleHourly();
+
+module.exports = { server };
