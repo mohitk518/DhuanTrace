@@ -1,0 +1,16 @@
+{
+  "name": "DhuanTrace",
+  "short_name": "DhuanTrace",
+  "description": "Finds the farm fires satellites miss, traces whose smoke reaches your city, and alerts the district that can act.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#141C21",
+  "theme_color": "#141C21",
+  "lang": "en-IN",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

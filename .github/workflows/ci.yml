@@ -1,0 +1,44 @@
+# Runs every test on each push and pull request, on the two Node versions the app supports.
+# No npm install is needed: DhuanTrace has zero dependencies. Tests are offline (network calls are mocked).
+name: tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Syntax check every file
+        run: for f in server.js app.js fednode.js lib/*.js test/*.js static/i18n.js scripts/*.js; do node --check "$f"; done
+      - name: Run all tests
+        run: npm test
+        env:
+          DEMO_MODE: '1'
+
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the Cloud Run image
+        run: docker build -t dhuantrace .
+      - name: Start it and check it answers
+        run: |
+          docker run -d -p 8080:8080 -e DEMO_MODE=1 --name dt dhuantrace
+          for i in $(seq 1 30); do curl -sf localhost:8080/api/health && break; sleep 1; done
+          curl -sf localhost:8080/api/system | grep -q '"ok":true'
+          curl -sf localhost:8080/api/openapi.json | grep -q '"openapi":"3.1.0"'

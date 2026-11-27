@@ -1,0 +1,1092 @@
+{
+ "id": "mp",
+ "name": "Madhya Pradesh",
+ "name_hi": "मध्य प्रदेश",
+ "short": "MP",
+ "country": "India",
+ "aqi_scale": "CPCB NAQI",
+ "home_states": [
+  {
+   "state": "Madhya Pradesh",
+   "state_hi": "मध्य प्रदेश",
+   "cpcb": [
+    "Madhya_Pradesh",
+    "Madhya Pradesh"
+   ],
+   "board_en": "MP Pollution Control Board",
+   "board_hi": "म.प्र. प्रदूषण नियंत्रण बोर्ड"
+  }
+ ],
+ "bbox": {
+  "w": 72.8,
+  "s": 20.2,
+  "e": 83.8,
+  "n": 27.4
+ },
+ "grid": {
+  "lats": [
+   21,
+   22,
+   23,
+   24,
+   25,
+   26,
+   27
+  ],
+  "lons": [
+   74,
+   75,
+   76,
+   77,
+   78,
+   79,
+   80,
+   81,
+   82,
+   83
+  ]
+ },
+ "analysis_bounds": {
+  "s": 18,
+  "n": 30,
+  "w": 70,
+  "e": 87
+ },
+ "waqi_bounds": [
+  21,
+  74,
+  26.9,
+  82.9
+ ],
+ "districts": [
+  [
+   "Agar Malwa",
+   "आगर मालवा",
+   23.71,
+   76.01
+  ],
+  [
+   "Alirajpur",
+   "अलीराजपुर",
+   22.31,
+   74.36
+  ],
+  [
+   "Anuppur",
+   "अनूपपुर",
+   23.1,
+   81.69
+  ],
+  [
+   "Ashoknagar",
+   "अशोकनगर",
+   24.58,
+   77.73
+  ],
+  [
+   "Balaghat",
+   "बालाघाट",
+   21.81,
+   80.18
+  ],
+  [
+   "Barwani",
+   "बड़वानी",
+   22.03,
+   74.9
+  ],
+  [
+   "Betul",
+   "बैतूल",
+   21.9,
+   77.9
+  ],
+  [
+   "Bhind",
+   "भिंड",
+   26.56,
+   78.78
+  ],
+  [
+   "Bhopal",
+   "भोपाल",
+   23.26,
+   77.41
+  ],
+  [
+   "Burhanpur",
+   "बुरहानपुर",
+   21.31,
+   76.23
+  ],
+  [
+   "Chhatarpur",
+   "छतरपुर",
+   24.92,
+   79.58
+  ],
+  [
+   "Chhindwara",
+   "छिंदवाड़ा",
+   22.06,
+   78.94
+  ],
+  [
+   "Damoh",
+   "दमोह",
+   23.83,
+   79.44
+  ],
+  [
+   "Datia",
+   "दतिया",
+   25.67,
+   78.46
+  ],
+  [
+   "Dewas",
+   "देवास",
+   22.97,
+   76.05
+  ],
+  [
+   "Dhar",
+   "धार",
+   22.6,
+   75.3
+  ],
+  [
+   "Dindori",
+   "डिंडोरी",
+   22.94,
+   81.08
+  ],
+  [
+   "Guna",
+   "गुना",
+   24.65,
+   77.31
+  ],
+  [
+   "Gwalior",
+   "ग्वालियर",
+   26.22,
+   78.18
+  ],
+  [
+   "Harda",
+   "हरदा",
+   22.34,
+   77.09
+  ],
+  [
+   "Indore",
+   "इंदौर",
+   22.72,
+   75.86
+  ],
+  [
+   "Jabalpur",
+   "जबलपुर",
+   23.18,
+   79.95
+  ],
+  [
+   "Jhabua",
+   "झाबुआ",
+   22.77,
+   74.59
+  ],
+  [
+   "Katni",
+   "कटनी",
+   23.83,
+   80.39
+  ],
+  [
+   "Khandwa",
+   "खंडवा",
+   21.83,
+   76.35
+  ],
+  [
+   "Khargone",
+   "खरगोन",
+   21.82,
+   75.61
+  ],
+  [
+   "Mandla",
+   "मंडला",
+   22.6,
+   80.37
+  ],
+  [
+   "Mandsaur",
+   "मंदसौर",
+   24.07,
+   75.07
+  ],
+  [
+   "Morena",
+   "मुरैना",
+   26.5,
+   78
+  ],
+  [
+   "Narmadapuram",
+   "नर्मदापुरम",
+   22.75,
+   77.72
+  ],
+  [
+   "Narsinghpur",
+   "नरसिंहपुर",
+   22.95,
+   79.19
+  ],
+  [
+   "Neemuch",
+   "नीमच",
+   24.47,
+   74.87
+  ],
+  [
+   "Panna",
+   "पन्ना",
+   24.72,
+   80.19
+  ],
+  [
+   "Raisen",
+   "रायसेन",
+   23.33,
+   77.78
+  ],
+  [
+   "Rajgarh",
+   "राजगढ़",
+   24.01,
+   76.73
+  ],
+  [
+   "Ratlam",
+   "रतलाम",
+   23.33,
+   75.04
+  ],
+  [
+   "Rewa",
+   "रीवा",
+   24.53,
+   81.3
+  ],
+  [
+   "Sagar",
+   "सागर",
+   23.84,
+   78.74
+  ],
+  [
+   "Satna",
+   "सतना",
+   24.6,
+   80.83
+  ],
+  [
+   "Sehore",
+   "सीहोर",
+   23.2,
+   77.08
+  ],
+  [
+   "Seoni",
+   "सिवनी",
+   22.09,
+   79.54
+  ],
+  [
+   "Shahdol",
+   "शहडोल",
+   23.3,
+   81.36
+  ],
+  [
+   "Shajapur",
+   "शाजापुर",
+   23.43,
+   76.27
+  ],
+  [
+   "Sheopur",
+   "श्योपुर",
+   25.67,
+   76.7
+  ],
+  [
+   "Shivpuri",
+   "शिवपुरी",
+   25.42,
+   77.66
+  ],
+  [
+   "Sidhi",
+   "सीधी",
+   24.4,
+   81.88
+  ],
+  [
+   "Singrauli",
+   "सिंगरौली",
+   24.2,
+   82.67
+  ],
+  [
+   "Tikamgarh",
+   "टीकमगढ़",
+   24.74,
+   78.83
+  ],
+  [
+   "Ujjain",
+   "उज्जैन",
+   23.18,
+   75.78
+  ],
+  [
+   "Umaria",
+   "उमरिया",
+   23.52,
+   80.84
+  ],
+  [
+   "Vidisha",
+   "विदिशा",
+   23.52,
+   77.81
+  ]
+ ],
+ "pop": {
+  "Indore": 2170000,
+  "Bhopal": 1890000,
+  "Jabalpur": 1270000,
+  "Gwalior": 1100000,
+  "Ujjain": 520000,
+  "Sagar": 370000,
+  "Dewas": 290000,
+  "Ratlam": 270000,
+  "Satna": 280000,
+  "Rewa": 240000,
+  "Katni": 220000,
+  "Singrauli": 220000
+ },
+ "cities": [
+  "Indore",
+  "Bhopal",
+  "Gwalior",
+  "Jabalpur",
+  "Ujjain",
+  "Sagar",
+  "Dewas",
+  "Ratlam",
+  "Satna",
+  "Rewa",
+  "Katni",
+  "Singrauli"
+ ],
+ "neighbour_towns": [
+  [
+   "Rajasthan",
+   "राजस्थान",
+   [
+    [
+     "Kota",
+     25.18,
+     75.83
+    ],
+    [
+     "Jhalawar",
+     24.6,
+     76.16
+    ],
+    [
+     "Baran",
+     25.1,
+     76.52
+    ],
+    [
+     "Chittorgarh",
+     24.88,
+     74.63
+    ],
+    [
+     "Banswara",
+     23.55,
+     74.44
+    ],
+    [
+     "Pratapgarh",
+     24.03,
+     74.78
+    ],
+    [
+     "Dholpur",
+     26.7,
+     77.89
+    ],
+    [
+     "Karauli",
+     26.5,
+     77.02
+    ],
+    [
+     "Sawai Madhopur",
+     26.02,
+     76.35
+    ],
+    [
+     "Bhilwara",
+     25.35,
+     74.63
+    ],
+    [
+     "Udaipur",
+     24.58,
+     73.71
+    ],
+    [
+     "Bundi",
+     25.44,
+     75.64
+    ]
+   ]
+  ],
+  [
+   "Uttar Pradesh",
+   "उत्तर प्रदेश",
+   [
+    [
+     "Jhansi",
+     25.45,
+     78.57
+    ],
+    [
+     "Lalitpur",
+     24.69,
+     78.41
+    ],
+    [
+     "Agra",
+     27.18,
+     78.01
+    ],
+    [
+     "Etawah",
+     26.78,
+     79.02
+    ],
+    [
+     "Orai",
+     25.99,
+     79.45
+    ],
+    [
+     "Hamirpur",
+     25.95,
+     80.15
+    ],
+    [
+     "Mahoba",
+     25.29,
+     79.87
+    ],
+    [
+     "Banda",
+     25.48,
+     80.33
+    ],
+    [
+     "Chitrakoot",
+     25.2,
+     80.9
+    ],
+    [
+     "Prayagraj",
+     25.44,
+     81.85
+    ],
+    [
+     "Mirzapur",
+     25.15,
+     82.57
+    ],
+    [
+     "Robertsganj",
+     24.69,
+     83.07
+    ]
+   ]
+  ],
+  [
+   "Chhattisgarh",
+   "छत्तीसगढ़",
+   [
+    [
+     "Ambikapur",
+     23.12,
+     83.2
+    ],
+    [
+     "Korba",
+     22.35,
+     82.68
+    ],
+    [
+     "Bilaspur",
+     22.08,
+     82.14
+    ],
+    [
+     "Mungeli",
+     22.07,
+     81.68
+    ],
+    [
+     "Kawardha",
+     22.01,
+     81.23
+    ],
+    [
+     "Rajnandgaon",
+     21.1,
+     81.03
+    ],
+    [
+     "Baikunthpur",
+     23.26,
+     82.56
+    ],
+    [
+     "Raipur",
+     21.25,
+     81.63
+    ]
+   ]
+  ],
+  [
+   "Maharashtra",
+   "महाराष्ट्र",
+   [
+    [
+     "Nagpur",
+     21.15,
+     79.09
+    ],
+    [
+     "Amravati",
+     20.93,
+     77.75
+    ],
+    [
+     "Akola",
+     20.7,
+     77
+    ],
+    [
+     "Jalgaon",
+     21,
+     75.56
+    ],
+    [
+     "Dhule",
+     20.9,
+     74.77
+    ],
+    [
+     "Nandurbar",
+     21.37,
+     74.24
+    ],
+    [
+     "Gondia",
+     21.46,
+     80.19
+    ],
+    [
+     "Bhandara",
+     21.17,
+     79.65
+    ],
+    [
+     "Buldhana",
+     20.53,
+     76.18
+    ]
+   ]
+  ],
+  [
+   "Gujarat",
+   "गुजरात",
+   [
+    [
+     "Dahod",
+     22.83,
+     74.25
+    ],
+    [
+     "Godhra",
+     22.78,
+     73.61
+    ],
+    [
+     "Chhota Udaipur",
+     22.3,
+     74.01
+    ],
+    [
+     "Vadodara",
+     22.31,
+     73.18
+    ]
+   ]
+  ]
+ ],
+ "neighbour_cities": [
+  [
+   "kota",
+   "Kota",
+   "Rajasthan",
+   25.18,
+   75.83,
+   1000000
+  ],
+  [
+   "udaipur",
+   "Udaipur",
+   "Rajasthan",
+   24.58,
+   73.71,
+   450000
+  ],
+  [
+   "jhansi",
+   "Jhansi",
+   "Uttar Pradesh",
+   25.45,
+   78.57,
+   550000
+  ],
+  [
+   "agra",
+   "Agra",
+   "Uttar Pradesh",
+   27.18,
+   78.01,
+   1760000
+  ],
+  [
+   "prayagraj",
+   "Prayagraj",
+   "Uttar Pradesh",
+   25.44,
+   81.85,
+   1210000
+  ],
+  [
+   "nagpur",
+   "Nagpur",
+   "Maharashtra",
+   21.15,
+   79.09,
+   2500000
+  ],
+  [
+   "raipur",
+   "Raipur",
+   "Chhattisgarh",
+   21.25,
+   81.63,
+   1120000
+  ],
+  [
+   "vadodara",
+   "Vadodara",
+   "Gujarat",
+   22.31,
+   73.18,
+   1820000
+  ]
+ ],
+ "corridors": [
+  {
+   "id": "indore-pithampur",
+   "name": "Indore – Pithampur",
+   "note": "Delhi–Mumbai Industrial Corridor node; auto and pharma plants",
+   "stops": [
+    [
+     "Indore",
+     22.72,
+     75.86
+    ],
+    [
+     "Pithampur",
+     22.61,
+     75.68
+    ]
+   ]
+  },
+  {
+   "id": "indore-dewas-ujjain",
+   "name": "Indore – Dewas – Ujjain",
+   "note": "Highway, Dewas industrial area and the Ujjain pilgrim city",
+   "stops": [
+    [
+     "Indore",
+     22.72,
+     75.86
+    ],
+    [
+     "Dewas",
+     22.96,
+     76.05
+    ],
+    [
+     "Ujjain",
+     23.18,
+     75.78
+    ]
+   ]
+  },
+  {
+   "id": "bhopal-mandideep",
+   "name": "Bhopal – Mandideep",
+   "note": "Bhopal's main industrial belt on the Narmadapuram road",
+   "stops": [
+    [
+     "Bhopal",
+     23.26,
+     77.41
+    ],
+    [
+     "Mandideep",
+     23.1,
+     77.53
+    ]
+   ]
+  },
+  {
+   "id": "nagda-ratlam",
+   "name": "Nagda – Ratlam",
+   "note": "Chemical and fibre plants on the Delhi–Mumbai rail line",
+   "stops": [
+    [
+     "Nagda",
+     23.46,
+     75.41
+    ],
+    [
+     "Ratlam",
+     23.33,
+     75.04
+    ]
+   ]
+  },
+  {
+   "id": "gwalior-malanpur",
+   "name": "Banmore – Gwalior – Malanpur",
+   "note": "Northern MP industrial cluster",
+   "stops": [
+    [
+     "Banmore",
+     26.35,
+     78.09
+    ],
+    [
+     "Gwalior",
+     26.22,
+     78.18
+    ],
+    [
+     "Malanpur",
+     26.35,
+     78.28
+    ]
+   ]
+  },
+  {
+   "id": "jabalpur-katni",
+   "name": "Jabalpur – Katni",
+   "note": "Mineral and lime industries",
+   "stops": [
+    [
+     "Jabalpur",
+     23.18,
+     79.95
+    ],
+    [
+     "Katni",
+     23.84,
+     80.39
+    ]
+   ]
+  }
+ ],
+ "industrial": [
+  [
+   "Pithampur industrial area",
+   22.61,
+   75.68
+  ],
+  [
+   "Sanwer Road industrial area, Indore",
+   22.76,
+   75.85
+  ],
+  [
+   "Dewas industrial area",
+   22.96,
+   76.07
+  ],
+  [
+   "Mandideep industrial area",
+   23.1,
+   77.53
+  ],
+  [
+   "Govindpura industrial area, Bhopal",
+   23.25,
+   77.45
+  ],
+  [
+   "Nagda chemical and fibre plants",
+   23.46,
+   75.41
+  ],
+  [
+   "Ratlam industrial area",
+   23.35,
+   75.04
+  ],
+  [
+   "Malanpur industrial area",
+   26.35,
+   78.28
+  ],
+  [
+   "Banmore industrial area",
+   26.35,
+   78.09
+  ],
+  [
+   "Satna cement plants",
+   24.58,
+   80.83
+  ],
+  [
+   "Singrauli power and coal belt",
+   24.14,
+   82.62
+  ],
+  [
+   "Katni industrial area",
+   23.84,
+   80.4
+  ]
+ ],
+ "fed_regions": {
+  "mp-west": {
+   "name": "MP West node",
+   "state": "Madhya Pradesh",
+   "cities": [
+    "Indore",
+    "Ujjain",
+    "Dewas",
+    "Ratlam"
+   ]
+  },
+  "mp-central": {
+   "name": "MP Central node",
+   "state": "Madhya Pradesh",
+   "cities": [
+    "Bhopal",
+    "Gwalior",
+    "Sagar"
+   ]
+  },
+  "mp-east": {
+   "name": "MP East node",
+   "state": "Madhya Pradesh",
+   "cities": [
+    "Jabalpur",
+    "Satna",
+    "Rewa",
+    "Katni",
+    "Singrauli"
+   ]
+  },
+  "rajasthan": {
+   "name": "Rajasthan node",
+   "state": "Rajasthan",
+   "cities": [
+    "Kota",
+    "Udaipur"
+   ]
+  }
+ },
+ "sample": {
+  "fire_districts": [
+   [
+    "Sehore",
+    22
+   ],
+   [
+    "Raisen",
+    26
+   ],
+   [
+    "Vidisha",
+    18
+   ],
+   [
+    "Narmadapuram",
+    24
+   ],
+   [
+    "Harda",
+    14
+   ],
+   [
+    "Dewas",
+    12
+   ],
+   [
+    "Katni",
+    15
+   ],
+   [
+    "Jabalpur",
+    13
+   ],
+   [
+    "Narsinghpur",
+    12
+   ],
+   [
+    "Satna",
+    9
+   ],
+   [
+    "Jhansi",
+    10
+   ],
+   [
+    "Lalitpur",
+    8
+   ],
+   [
+    "Banda",
+    6
+   ],
+   [
+    "Kota",
+    5
+   ]
+  ],
+  "reports": [
+   [
+    "Raisen",
+    17.6,
+    "crop_residue_burning",
+    "high",
+    "Line of flames along a harvested field edge with thick white smoke."
+   ],
+   [
+    "Sehore",
+    18.1,
+    "crop_residue_burning",
+    "high",
+    "Several stubble fires burning, dense smoke drifting west."
+   ],
+   [
+    "Narmadapuram",
+    18.3,
+    "crop_residue_burning",
+    "medium",
+    "Small fires in paddy fields, low light, smoke visible."
+   ],
+   [
+    "Vidisha",
+    18.9,
+    "crop_residue_burning",
+    "medium",
+    "Glowing embers and grey smoke over a large field."
+   ],
+   [
+    "Dewas",
+    19.2,
+    "garbage_burning",
+    "medium",
+    "Dark smoke from a roadside waste dump."
+   ],
+   [
+    "Katni",
+    17.9,
+    "crop_residue_burning",
+    "low",
+    "Thin smoke from a single field fire."
+   ]
+  ],
+  "sensors": [
+   [
+    "pithampur-01",
+    22.615,
+    75.68,
+    168
+   ],
+   [
+    "pithampur-02",
+    22.598,
+    75.702,
+    151
+   ],
+   [
+    "dewas-ia-01",
+    22.962,
+    76.071,
+    104
+   ],
+   [
+    "mandideep-01",
+    23.098,
+    77.531,
+    142
+   ],
+   [
+    "bhopal-kolar-01",
+    23.18,
+    77.41,
+    58
+   ],
+   [
+    "indore-vijaynagar-01",
+    22.752,
+    75.894,
+    71
+   ]
+  ],
+  "stations": {
+   "Indore": 128,
+   "Bhopal": 141,
+   "Gwalior": 176,
+   "Jabalpur": 118,
+   "Ujjain": 104,
+   "Sagar": 92,
+   "Dewas": 112,
+   "Ratlam": 97,
+   "Satna": 121,
+   "Rewa": 110,
+   "Katni": 132,
+   "Singrauli": 158
+  }
+ }
+}

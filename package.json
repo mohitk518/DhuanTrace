@@ -1,0 +1,13 @@
+{
+  "name": "dhuantrace",
+  "version": "1.0.0",
+  "description": "Finds the farm fires satellites miss, traces whose smoke reaches a city, and drafts the alert for the district that can act.",
+  "main": "server.js",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node server.js",
+    "demo": "DEMO_MODE=1 node server.js",
+    "test": "node test/live-paths.test.js && node test/cache.test.js && node test/waqi.test.js && node test/features.test.js && node test/research.test.js && node test/fednet.test.js && node test/satevidence.test.js && node test/openapi.test.js && node test/i18n.test.js && node test/gcs.test.js && node test/gemini.test.js && node test/region.test.js && node test/server.test.js"
+  },
+  "license": "MIT"
+}

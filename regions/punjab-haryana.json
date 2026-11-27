@@ -1,0 +1,1017 @@
+{
+ "id": "punjab-haryana",
+ "name": "Punjab and Haryana",
+ "name_hi": "पंजाब और हरियाणा",
+ "short": "PB-HR",
+ "country": "India",
+ "aqi_scale": "CPCB NAQI",
+ "note": "Second region pack, built to show how DhuanTrace scales to another state: the paddy-residue belt that feeds Delhi smoke every October–November. District headquarters and town coordinates are approximate; populations are approximate Census 2011 (Lahore: Pakistan 2017 census).",
+ "home_states": [
+  {
+   "state": "Punjab",
+   "state_hi": "पंजाब",
+   "cpcb": [
+    "Punjab"
+   ],
+   "board_en": "Punjab Pollution Control Board",
+   "board_hi": "पंजाब प्रदूषण नियंत्रण बोर्ड"
+  },
+  {
+   "state": "Haryana",
+   "state_hi": "हरियाणा",
+   "cpcb": [
+    "Haryana"
+   ],
+   "board_en": "Haryana State Pollution Control Board",
+   "board_hi": "हरियाणा राज्य प्रदूषण नियंत्रण बोर्ड"
+  }
+ ],
+ "bbox": {
+  "w": 72.6,
+  "s": 27.4,
+  "e": 78.6,
+  "n": 33.0
+ },
+ "grid": {
+  "lats": [
+   28,
+   29,
+   30,
+   31,
+   32,
+   33
+  ],
+  "lons": [
+   73,
+   74,
+   75,
+   76,
+   77,
+   78
+  ],
+  "center": [
+   30.5,
+   75.5
+  ]
+ },
+ "analysis_bounds": {
+  "s": 26,
+  "n": 34.5,
+  "w": 71,
+  "e": 80
+ },
+ "waqi_bounds": [
+  27.6,
+  73.8,
+  32.6,
+  77.7
+ ],
+ "districts": [
+  [
+   "Amritsar",
+   "अमृतसर",
+   31.63,
+   74.87,
+   "Punjab"
+  ],
+  [
+   "Barnala",
+   "बरनाला",
+   30.38,
+   75.55,
+   "Punjab"
+  ],
+  [
+   "Bathinda",
+   "बठिंडा",
+   30.21,
+   74.95,
+   "Punjab"
+  ],
+  [
+   "Faridkot",
+   "फ़रीदकोट",
+   30.67,
+   74.76,
+   "Punjab"
+  ],
+  [
+   "Fatehgarh Sahib",
+   "फ़तेहगढ़ साहिब",
+   30.65,
+   76.39,
+   "Punjab"
+  ],
+  [
+   "Fazilka",
+   "फ़ाज़िल्का",
+   30.4,
+   74.03,
+   "Punjab"
+  ],
+  [
+   "Ferozepur",
+   "फ़िरोज़पुर",
+   30.93,
+   74.61,
+   "Punjab"
+  ],
+  [
+   "Gurdaspur",
+   "गुरदासपुर",
+   32.04,
+   75.4,
+   "Punjab"
+  ],
+  [
+   "Hoshiarpur",
+   "होशियारपुर",
+   31.53,
+   75.91,
+   "Punjab"
+  ],
+  [
+   "Jalandhar",
+   "जालंधर",
+   31.33,
+   75.58,
+   "Punjab"
+  ],
+  [
+   "Kapurthala",
+   "कपूरथला",
+   31.38,
+   75.38,
+   "Punjab"
+  ],
+  [
+   "Ludhiana",
+   "लुधियाना",
+   30.9,
+   75.85,
+   "Punjab"
+  ],
+  [
+   "Malerkotla",
+   "मलेरकोटला",
+   30.53,
+   75.88,
+   "Punjab"
+  ],
+  [
+   "Mansa",
+   "मानसा",
+   29.99,
+   75.4,
+   "Punjab"
+  ],
+  [
+   "Moga",
+   "मोगा",
+   30.82,
+   75.17,
+   "Punjab"
+  ],
+  [
+   "Pathankot",
+   "पठानकोट",
+   32.27,
+   75.65,
+   "Punjab"
+  ],
+  [
+   "Patiala",
+   "पटियाला",
+   30.34,
+   76.39,
+   "Punjab"
+  ],
+  [
+   "Rupnagar",
+   "रूपनगर",
+   30.97,
+   76.53,
+   "Punjab"
+  ],
+  [
+   "Mohali",
+   "मोहाली",
+   30.7,
+   76.72,
+   "Punjab"
+  ],
+  [
+   "Sangrur",
+   "संगरूर",
+   30.25,
+   75.84,
+   "Punjab"
+  ],
+  [
+   "Nawanshahr",
+   "नवांशहर",
+   31.12,
+   76.12,
+   "Punjab"
+  ],
+  [
+   "Sri Muktsar Sahib",
+   "श्री मुक्तसर साहिब",
+   30.47,
+   74.52,
+   "Punjab"
+  ],
+  [
+   "Tarn Taran",
+   "तरनतारन",
+   31.45,
+   74.93,
+   "Punjab"
+  ],
+  [
+   "Ambala",
+   "अंबाला",
+   30.38,
+   76.78,
+   "Haryana"
+  ],
+  [
+   "Bhiwani",
+   "भिवानी",
+   28.79,
+   76.14,
+   "Haryana"
+  ],
+  [
+   "Charkhi Dadri",
+   "चरखी दादरी",
+   28.59,
+   76.27,
+   "Haryana"
+  ],
+  [
+   "Faridabad",
+   "फ़रीदाबाद",
+   28.41,
+   77.32,
+   "Haryana"
+  ],
+  [
+   "Fatehabad",
+   "फ़तेहाबाद",
+   29.52,
+   75.45,
+   "Haryana"
+  ],
+  [
+   "Gurugram",
+   "गुरुग्राम",
+   28.46,
+   77.03,
+   "Haryana"
+  ],
+  [
+   "Hisar",
+   "हिसार",
+   29.15,
+   75.72,
+   "Haryana"
+  ],
+  [
+   "Jhajjar",
+   "झज्जर",
+   28.61,
+   76.66,
+   "Haryana"
+  ],
+  [
+   "Jind",
+   "जींद",
+   29.32,
+   76.32,
+   "Haryana"
+  ],
+  [
+   "Kaithal",
+   "कैथल",
+   29.8,
+   76.4,
+   "Haryana"
+  ],
+  [
+   "Karnal",
+   "करनाल",
+   29.69,
+   76.99,
+   "Haryana"
+  ],
+  [
+   "Kurukshetra",
+   "कुरुक्षेत्र",
+   29.97,
+   76.88,
+   "Haryana"
+  ],
+  [
+   "Mahendragarh",
+   "महेंद्रगढ़",
+   28.04,
+   76.11,
+   "Haryana"
+  ],
+  [
+   "Nuh",
+   "नूंह",
+   28.1,
+   77.0,
+   "Haryana"
+  ],
+  [
+   "Palwal",
+   "पलवल",
+   28.14,
+   77.33,
+   "Haryana"
+  ],
+  [
+   "Panchkula",
+   "पंचकूला",
+   30.69,
+   76.86,
+   "Haryana"
+  ],
+  [
+   "Panipat",
+   "पानीपत",
+   29.39,
+   76.97,
+   "Haryana"
+  ],
+  [
+   "Rewari",
+   "रेवाड़ी",
+   28.2,
+   76.62,
+   "Haryana"
+  ],
+  [
+   "Rohtak",
+   "रोहतक",
+   28.89,
+   76.61,
+   "Haryana"
+  ],
+  [
+   "Sirsa",
+   "सिरसा",
+   29.53,
+   75.03,
+   "Haryana"
+  ],
+  [
+   "Sonipat",
+   "सोनीपत",
+   28.99,
+   77.02,
+   "Haryana"
+  ],
+  [
+   "Yamunanagar",
+   "यमुनानगर",
+   30.13,
+   77.29,
+   "Haryana"
+  ]
+ ],
+ "pop": {
+  "Ludhiana": 1618879,
+  "Amritsar": 1183705,
+  "Jalandhar": 873725,
+  "Patiala": 446246,
+  "Bathinda": 285813,
+  "Mohali": 166864,
+  "Faridabad": 1414050,
+  "Gurugram": 876969,
+  "Panipat": 294292,
+  "Karnal": 286974,
+  "Hisar": 301249,
+  "Rohtak": 374292
+ },
+ "cities": [
+  "Ludhiana",
+  "Amritsar",
+  "Jalandhar",
+  "Patiala",
+  "Bathinda",
+  "Mohali",
+  "Faridabad",
+  "Gurugram",
+  "Panipat",
+  "Karnal",
+  "Hisar",
+  "Rohtak"
+ ],
+ "neighbour_towns": [
+  [
+   "Rajasthan",
+   "राजस्थान",
+   [
+    [
+     "Sri Ganganagar",
+     29.91,
+     73.88
+    ],
+    [
+     "Hanumangarh",
+     29.58,
+     74.33
+    ],
+    [
+     "Churu",
+     28.3,
+     74.95
+    ],
+    [
+     "Jhunjhunu",
+     28.13,
+     75.4
+    ],
+    [
+     "Alwar",
+     27.55,
+     76.6
+    ],
+    [
+     "Bharatpur",
+     27.22,
+     77.49
+    ]
+   ]
+  ],
+  [
+   "Delhi",
+   "दिल्ली",
+   [
+    [
+     "New Delhi",
+     28.61,
+     77.21
+    ],
+    [
+     "Narela",
+     28.85,
+     77.09
+    ],
+    [
+     "Najafgarh",
+     28.61,
+     76.98
+    ]
+   ]
+  ],
+  [
+   "Uttar Pradesh",
+   "उत्तर प्रदेश",
+   [
+    [
+     "Saharanpur",
+     29.96,
+     77.55
+    ],
+    [
+     "Shamli",
+     29.45,
+     77.31
+    ],
+    [
+     "Muzaffarnagar",
+     29.47,
+     77.7
+    ],
+    [
+     "Meerut",
+     28.98,
+     77.71
+    ],
+    [
+     "Ghaziabad",
+     28.67,
+     77.45
+    ]
+   ]
+  ],
+  [
+   "Himachal Pradesh",
+   "हिमाचल प्रदेश",
+   [
+    [
+     "Una",
+     31.47,
+     76.27
+    ],
+    [
+     "Nahan",
+     30.56,
+     77.3
+    ],
+    [
+     "Kangra",
+     32.1,
+     76.27
+    ],
+    [
+     "Solan",
+     30.91,
+     77.1
+    ]
+   ]
+  ],
+  [
+   "Jammu and Kashmir",
+   "जम्मू और कश्मीर",
+   [
+    [
+     "Kathua",
+     32.37,
+     75.52
+    ],
+    [
+     "Jammu",
+     32.73,
+     74.86
+    ]
+   ]
+  ],
+  [
+   "Chandigarh",
+   "चंडीगढ़",
+   [
+    [
+     "Chandigarh",
+     30.73,
+     76.78
+    ]
+   ]
+  ],
+  [
+   "Pakistan (Punjab)",
+   "पाकिस्तान (पंजाब)",
+   [
+    [
+     "Lahore",
+     31.52,
+     74.36
+    ],
+    [
+     "Kasur",
+     31.12,
+     74.45
+    ],
+    [
+     "Sialkot",
+     32.49,
+     74.52
+    ],
+    [
+     "Okara",
+     30.81,
+     73.45
+    ],
+    [
+     "Narowal",
+     32.1,
+     74.87
+    ]
+   ]
+  ]
+ ],
+ "neighbour_cities": [
+  [
+   "delhi",
+   "Delhi",
+   "Delhi",
+   28.61,
+   77.21,
+   16314838
+  ],
+  [
+   "chandigarh",
+   "Chandigarh",
+   "Chandigarh",
+   30.73,
+   76.78,
+   1026459
+  ],
+  [
+   "lahore",
+   "Lahore",
+   "Pakistan (Punjab)",
+   31.52,
+   74.36,
+   11126285
+  ],
+  [
+   "meerut",
+   "Meerut",
+   "Uttar Pradesh",
+   28.98,
+   77.71,
+   1420902
+  ],
+  [
+   "saharanpur",
+   "Saharanpur",
+   "Uttar Pradesh",
+   29.96,
+   77.55,
+   705478
+  ],
+  [
+   "jammu",
+   "Jammu",
+   "Jammu and Kashmir",
+   32.73,
+   74.86,
+   657314
+  ],
+  [
+   "sri-ganganagar",
+   "Sri Ganganagar",
+   "Rajasthan",
+   29.91,
+   73.88,
+   249914
+  ]
+ ],
+ "corridors": [
+  {
+   "id": "ludhiana-gobindgarh",
+   "name": "Ludhiana – Khanna – Mandi Gobindgarh",
+   "note": "Hosiery and cycle-parts industry and the steel re-rolling mills of Mandi Gobindgarh",
+   "stops": [
+    [
+     "Ludhiana",
+     30.9,
+     75.85
+    ],
+    [
+     "Khanna",
+     30.7,
+     76.22
+    ],
+    [
+     "Mandi Gobindgarh",
+     30.67,
+     76.3
+    ]
+   ]
+  },
+  {
+   "id": "rajpura-patiala",
+   "name": "Rajpura – Patiala",
+   "note": "Small industry and a thermal power plant along NH-44",
+   "stops": [
+    [
+     "Rajpura",
+     30.48,
+     76.59
+    ],
+    [
+     "Patiala",
+     30.34,
+     76.39
+    ]
+   ]
+  },
+  {
+   "id": "panipat-sonipat",
+   "name": "Panipat – Samalkha – Sonipat",
+   "note": "Panipat refinery and textile units, Kundli–Rai industrial belt",
+   "stops": [
+    [
+     "Panipat",
+     29.39,
+     76.97
+    ],
+    [
+     "Samalkha",
+     29.24,
+     77.01
+    ],
+    [
+     "Sonipat",
+     28.99,
+     77.02
+    ]
+   ]
+  },
+  {
+   "id": "gurugram-bawal",
+   "name": "Gurugram – Manesar – Bawal",
+   "note": "Delhi–Mumbai Industrial Corridor: auto and electronics plants",
+   "stops": [
+    [
+     "Gurugram",
+     28.46,
+     77.03
+    ],
+    [
+     "Manesar",
+     28.36,
+     76.94
+    ],
+    [
+     "Bawal",
+     28.08,
+     76.58
+    ]
+   ]
+  },
+  {
+   "id": "faridabad-palwal",
+   "name": "Faridabad – Ballabgarh – Palwal",
+   "note": "Engineering and auto-component industry",
+   "stops": [
+    [
+     "Faridabad",
+     28.41,
+     77.32
+    ],
+    [
+     "Ballabgarh",
+     28.34,
+     77.32
+    ],
+    [
+     "Palwal",
+     28.14,
+     77.33
+    ]
+   ]
+  },
+  {
+   "id": "jalandhar-amritsar",
+   "name": "Jalandhar – Kartarpur – Amritsar",
+   "note": "Sports goods, leather and textile industry on the Grand Trunk Road",
+   "stops": [
+    [
+     "Jalandhar",
+     31.33,
+     75.58
+    ],
+    [
+     "Kartarpur",
+     31.44,
+     75.5
+    ],
+    [
+     "Amritsar",
+     31.63,
+     74.87
+    ]
+   ]
+  }
+ ],
+ "industrial": [
+  [
+   "Mandi Gobindgarh steel mills",
+   30.67,
+   76.3
+  ],
+  [
+   "Ludhiana Focal Point industrial area",
+   30.88,
+   75.93
+  ],
+  [
+   "Panipat refinery and textile belt",
+   29.47,
+   76.88
+  ],
+  [
+   "Bathinda refinery and power belt",
+   30.13,
+   74.95
+  ],
+  [
+   "Manesar industrial area",
+   28.36,
+   76.94
+  ],
+  [
+   "Faridabad industrial area",
+   28.4,
+   77.3
+  ],
+  [
+   "Kundli industrial area",
+   28.87,
+   77.11
+  ],
+  [
+   "Bahadurgarh industrial area",
+   28.69,
+   76.93
+  ],
+  [
+   "Yamunanagar plywood units",
+   30.13,
+   77.29
+  ],
+  [
+   "Rajpura industrial area",
+   30.48,
+   76.59
+  ]
+ ],
+ "fed_regions": {
+  "punjab-malwa": {
+   "name": "Punjab Malwa node",
+   "state": "Punjab",
+   "cities": [
+    "Ludhiana",
+    "Patiala",
+    "Bathinda",
+    "Mohali"
+   ]
+  },
+  "punjab-doaba-majha": {
+   "name": "Punjab Doaba–Majha node",
+   "state": "Punjab",
+   "cities": [
+    "Amritsar",
+    "Jalandhar"
+   ]
+  },
+  "haryana": {
+   "name": "Haryana node",
+   "state": "Haryana",
+   "cities": [
+    "Panipat",
+    "Karnal",
+    "Hisar",
+    "Rohtak"
+   ]
+  },
+  "haryana-ncr": {
+   "name": "Haryana NCR node",
+   "state": "Haryana",
+   "cities": [
+    "Faridabad",
+    "Gurugram"
+   ]
+  }
+ },
+ "sample": {
+  "fire_districts": [
+   [
+    "Sangrur",
+    26
+   ],
+   [
+    "Bathinda",
+    20
+   ],
+   [
+    "Ferozepur",
+    18
+   ],
+   [
+    "Moga",
+    16
+   ],
+   [
+    "Patiala",
+    18
+   ],
+   [
+    "Tarn Taran",
+    14
+   ],
+   [
+    "Fatehabad",
+    14
+   ],
+   [
+    "Kaithal",
+    12
+   ],
+   [
+    "Jind",
+    10
+   ],
+   [
+    "Sirsa",
+    10
+   ],
+   [
+    "Lahore",
+    8
+   ],
+   [
+    "Kasur",
+    8
+   ],
+   [
+    "Sri Ganganagar",
+    5
+   ]
+  ],
+  "reports": [
+   [
+    "Sangrur",
+    17.8,
+    "crop_residue_burning",
+    "high",
+    "Rows of burning paddy stubble with thick white smoke."
+   ],
+   [
+    "Ludhiana",
+    18.2,
+    "crop_residue_burning",
+    "high",
+    "Several field fires at dusk, dense smoke drifting south-east."
+   ],
+   [
+    "Kaithal",
+    18.4,
+    "crop_residue_burning",
+    "medium",
+    "Small fires in harvested paddy fields, smoke visible."
+   ],
+   [
+    "Moga",
+    18.9,
+    "crop_residue_burning",
+    "medium",
+    "Glowing embers and grey smoke over a large field."
+   ],
+   [
+    "Panipat",
+    19.1,
+    "garbage_burning",
+    "medium",
+    "Dark smoke from a roadside waste dump."
+   ],
+   [
+    "Fatehabad",
+    17.9,
+    "crop_residue_burning",
+    "low",
+    "Thin smoke from a single field fire."
+   ]
+  ],
+  "sensors": [
+   [
+    "gobindgarh-01",
+    30.67,
+    76.3,
+    172
+   ],
+   [
+    "ludhiana-focal-01",
+    30.88,
+    75.93,
+    149
+   ],
+   [
+    "panipat-ref-01",
+    29.46,
+    76.89,
+    121
+   ],
+   [
+    "manesar-01",
+    28.36,
+    76.94,
+    133
+   ],
+   [
+    "mohali-ph8-01",
+    30.71,
+    76.7,
+    64
+   ],
+   [
+    "patiala-01",
+    30.34,
+    76.4,
+    71
+   ]
+  ],
+  "stations": {
+   "Ludhiana": 182,
+   "Amritsar": 168,
+   "Jalandhar": 161,
+   "Patiala": 174,
+   "Bathinda": 189,
+   "Mohali": 142,
+   "Faridabad": 226,
+   "Gurugram": 214,
+   "Panipat": 231,
+   "Karnal": 176,
+   "Hisar": 198,
+   "Rohtak": 205
+  }
+ }
+}

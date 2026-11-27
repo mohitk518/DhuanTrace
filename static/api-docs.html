@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DhuanTrace API</title>
+<link rel="icon" href="/icon-192.png">
+<style>
+:root{--bg:#EDF0F1;--surface:#fff;--surface2:#F5F7F8;--ink:#172026;--muted:#5A6770;--line:#D5DCDF;--accent:#1D6A86;--get:#2E8B57;--post:#B5307A;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10161A;--surface:#182126;--surface2:#1E2930;--ink:#E3EAED;--muted:#93A3AC;--line:#2B3840;--accent:#5DB3D1;--get:#4CC38A;--post:#E36BAE;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#10161A;--surface:#182126;--surface2:#1E2930;--ink:#E3EAED;--muted:#93A3AC;--line:#2B3840;--accent:#5DB3D1;--get:#4CC38A;--post:#E36BAE;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--body);padding:24px 16px 48px}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{font:800 30px/1.1 var(--body);margin:0}
+h2{font:600 12.5px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+a{color:var(--accent)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.op{border-top:1px solid var(--line);padding:10px 0}
+.op:first-of-type{border-top:0}
+.m{font:600 11.5px var(--mono);padding:2px 7px;border-radius:4px;color:#fff;margin-right:8px;display:inline-block;min-width:44px;text-align:center}
+.m.get{background:var(--get)} .m.post{background:var(--post)}
+.path{font:500 14px var(--mono);word-break:break-all}
+.sum{margin:4px 0 0;color:var(--ink)}
+.meta{font-size:12.5px;color:var(--muted);margin-top:4px}
+code{font:12.5px var(--mono);background:var(--surface2);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+details summary{cursor:pointer;font-size:12.5px;color:var(--accent);margin-top:4px}
+pre{font:12px/1.5 var(--mono);background:var(--surface2);border:1px solid var(--line);border-radius:6px;padding:10px;overflow:auto;max-height:280px}
+</style>
+</head>
+<body>
+<main>
+  <div>
+    <h1>DhuanTrace API</h1>
+    <p id="intro" class="meta">Loading the OpenAPI description…</p>
+    <p class="meta"><a href="/">← Back to the app</a> · <a href="/api/openapi.json">openapi.json</a> (load it in any OpenAPI tool, such as Swagger UI or Postman)</p>
+  </div>
+  <div id="groups"></div>
+</main>
+<script>
+(async () => {
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  try {
+    const s = await (await fetch('/api/openapi.json')).json();
+    document.getElementById('intro').textContent = `${s.info.description} Version ${s.info.version}, OpenAPI ${s.openapi}.`;
+    const byTag = {};
+    for (const [p, ops] of Object.entries(s.paths)) for (const [m, o] of Object.entries(ops)) (byTag[o.tags[0]] ||= []).push({ p, m, o });
+    const schemaText = (x) => JSON.stringify(x, null, 2);
+    document.getElementById('groups').innerHTML = s.tags.map(({ name }) => byTag[name] ? `<section class="panel"><h2>${esc(name)}</h2>${byTag[name].map(({ p, m, o }) => {
+      const params = (o.parameters || []).map((x) => `<code>${esc(x.name)}</code>${x.required ? ' (required)' : ''}: ${esc(x.description || '')}`).join('<br>');
+      const body = o.requestBody ? o.requestBody.content['application/json'].schema : null;
+      const codes = Object.entries(o.responses).map(([c, r]) => `<code>${esc(c)}</code> ${esc(r.description)}`).join(' · ');
+      const tryIt = m === 'get' && !p.includes('{') && !(o.parameters || []).some((x) => x.required) ? ` · <a href="${esc(p)}" target="_blank" rel="noopener">open</a>` : '';
+      return `<div class="op"><span class="m ${m}">${m.toUpperCase()}</span><span class="path">${esc(p)}</span>${tryIt}
+        <p class="sum">${esc(o.summary)}</p>${params ? `<div class="meta">${params}</div>` : ''}<div class="meta">${codes}</div>
+        ${body ? `<details><summary>Request body</summary><pre>${esc(schemaText(body))}</pre></details>` : ''}</div>`;
+    }).join('')}</section>` : '').join('');
+  } catch (e) { document.getElementById('intro').textContent = 'Could not load /api/openapi.json: ' + e.message; }
+})();
+</script>
+</body>
+</html>

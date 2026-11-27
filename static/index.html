@@ -1,0 +1,1408 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>DhuanTrace</title>
+<meta name="description" content="Finds the farm fires satellites miss, traces whose smoke is reaching your city, and drafts the alert for the district that can act.">
+<link rel="icon" href="/icon-192.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#141C21">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+Devanagari:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{
+  --bg:#EDF0F1; --surface:#FFFFFF; --surface2:#F5F7F8; --ink:#172026; --muted:#5A6770; --line:#D5DCDF;
+  --accent:#1D6A86; --accent-soft:rgba(29,106,134,.12); --fire:#E0552B; --citizen:#7456C2; --grid:#DCE2E5;
+  --live:#2E8B57; --sample:#B7791F; --hot:#B5307A;
+  --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --body:"IBM Plex Sans","Noto Sans Devanagari","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#10161A; --surface:#182126; --surface2:#1E2930; --ink:#E3EAED; --muted:#93A3AC; --line:#2B3840;
+  --accent:#5DB3D1; --accent-soft:rgba(93,179,209,.15); --fire:#FF7447; --citizen:#A48CF0; --grid:#233038; --live:#4CC38A; --sample:#E2B04A; --hot:#E36BAE;
+  color-scheme:dark;}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);padding-inline:16px;padding-block:18px 40px}
+.wrap{max-width:1320px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between}
+h1{font:800 clamp(28px,4vw,40px)/1 var(--display);letter-spacing:-.02em;margin:0}
+h1 span{color:var(--fire)}
+.tag{margin:6px 0 0;color:var(--muted);max-width:60ch}
+.status{display:flex;flex-wrap:wrap;gap:6px}
+.src{font:500 11.5px var(--mono);border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 10px 3px 8px;display:inline-flex;gap:6px;align-items:center;cursor:help}
+.src i{width:8px;height:8px;border-radius:50%;background:var(--sample)}
+.src.live i{background:var(--live)} .src.error i{background:#D12B3F} .src.off i{background:var(--muted)}
+h2{font:600 12.5px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(320px,1fr);gap:16px;align-items:start}
+@media (max-width:960px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+#map{height:min(72vh,680px);min-height:420px;border-radius:8px;background:var(--surface2)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-top:10px;font-size:13px;color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{font:500 12.5px var(--body);background:var(--surface);color:var(--ink);border:0;padding:5px 11px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--accent-soft);color:var(--accent)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--muted);margin-top:8px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+select,input[type=file],input[type=text]{font:14px var(--body);color:var(--ink);background:var(--surface2);border:1px solid var(--line);border-radius:6px;padding:7px;max-width:100%}
+.pick{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pick select{flex:1;min-width:150px}
+.hint{font-size:12.5px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-top:12px}
+.stat{background:var(--surface);padding:11px 12px}
+.stat .k{font-size:12px;color:var(--muted)}
+.stat .v{font:600 25px/1.2 var(--mono);font-variant-numeric:tabular-nums}
+.stat .s{font-size:11.5px;color:var(--muted)}
+.chip{display:inline-block;font:600 11px var(--body);padding:2px 7px;border-radius:4px;color:#fff;vertical-align:4px;margin-left:6px}
+.callout{margin-top:12px;border-left:3px solid var(--citizen);background:var(--surface2);padding:10px 12px;border-radius:0 6px 6px 0;font-size:13.5px}
+.rows{display:flex;flex-direction:column;gap:8px;font-size:13.5px}
+.row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+.mini{height:6px;border-radius:3px;background:var(--fire);margin-top:4px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)} .small{font-size:12.5px}
+#chart{width:100%;height:auto;display:block}
+.lower{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+@media (max-width:1060px){.lower{grid-template-columns:minmax(0,1fr)}}
+form{display:flex;flex-direction:column;gap:8px}
+.btn{font:600 13.5px var(--body);background:var(--accent);color:var(--surface);border:0;border-radius:6px;padding:8px 14px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.btn[disabled]{opacity:.55;cursor:wait}
+a{color:var(--accent)}
+.prio button,.item button,.statusbar button,.pop button,.chips button{min-height:28px;min-width:28px} /* comfortable tap targets */
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.result{border:1px solid var(--line);border-radius:8px;padding:10px;display:grid;grid-template-columns:64px 1fr;gap:10px;font-size:13.5px}
+.result img{width:64px;height:64px;object-fit:cover;border-radius:6px}
+.badge{font:500 11px var(--mono);padding:1px 6px;border-radius:4px;background:var(--accent-soft);color:var(--accent);margin-right:4px;white-space:nowrap}
+.badge.p{background:rgba(116,86,194,.14);color:var(--citizen)}
+.badge.f{background:rgba(224,85,43,.14);color:var(--fire)}
+.letter{font:13.5px/1.6 var(--body);background:var(--surface2);border:1px solid var(--line);border-radius:6px;padding:12px;white-space:pre-wrap;max-height:360px;overflow:auto}
+.letter b{display:block}
+pre{font:12.5px/1.5 var(--mono);background:var(--surface2);border:1px solid var(--line);border-radius:6px;padding:12px;margin:0;max-height:360px;overflow:auto;white-space:pre}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+footer{font-size:12.5px;color:var(--muted);line-height:1.6}
+footer b{color:var(--ink)}
+.leaflet-container{font:13px var(--body)}
+.leaflet-popup-content{margin:10px 12px}
+.pop b{font-weight:600}
+.pop img{width:180px;max-width:100%;border-radius:6px;display:block;margin-top:6px}
+.pop .acts{display:flex;gap:6px;margin-top:8px}
+.pop button{font:600 12px var(--body);border:1px solid var(--accent);background:var(--surface);color:var(--accent);border-radius:5px;padding:4px 8px;cursor:pointer}
+.aqi-pin{font:600 11px var(--mono);color:#fff;border-radius:4px;padding:1px 5px;border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.3);white-space:nowrap}
+.place-pin{width:18px;height:18px;border-radius:50%;background:var(--accent);border:3px solid #fff;box-shadow:0 0 0 3px var(--accent)}
+.loading{opacity:.55;transition:opacity .2s}
+.base-tiles{filter:saturate(.35) brightness(1.03)}
+.sat{position:relative;width:100%;max-width:520px;aspect-ratio:1/1;border-radius:8px;overflow:hidden;background:var(--surface2);border:1px solid var(--line)}
+.sat img{width:100%;height:100%;object-fit:cover;display:block}
+.sat .fx{position:absolute;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;border:2px solid #FFD166;box-shadow:0 0 0 2px rgba(0,0,0,.35)}
+.sat svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.sat .empty{position:absolute;inset:0;display:grid;place-items:center;padding:16px;text-align:center;color:var(--muted);font-size:13.5px}
+.verdict{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.verdict span{font:600 12px var(--body);padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:var(--surface2)}
+.verdict .yes{border-color:#2E8B57;color:#2E8B57} .verdict .no{border-color:#D12B3F;color:#D12B3F}
+.big3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.big3 div{background:var(--surface);padding:10px 12px}
+.big3 b{display:block;font:600 24px/1.2 var(--mono);font-variant-numeric:tabular-nums}
+.big3 small{font-size:12px;color:var(--muted)}
+.skill{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+.skill td,.skill th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}
+.skill th{font:600 11.5px var(--body);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.hot-pin{width:16px;height:16px;transform:rotate(45deg);background:var(--hot);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.sensor-pin{width:12px;height:12px;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.item{border-top:1px solid var(--line);padding:10px 0;display:flex;flex-direction:column;gap:4px}
+.item:first-child{border-top:0;padding-top:0}
+.item .top{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;justify-content:space-between}
+.item ul{margin:2px 0 0;padding-left:18px;font-size:13px;color:var(--muted)}
+.item button{font:600 12px var(--body);border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:5px;padding:3px 8px;cursor:pointer}
+.stat-chip{font:600 11px var(--body);padding:2px 8px;border-radius:999px;color:#fff}
+.stat-chip.warning{background:#D12B3F} .stat-chip.watch{background:#D9A91E;color:#172026} .stat-chip.ok{background:#3AA757}
+.spark{width:100%;aspect-ratio:400/70;height:auto;display:block;margin-top:4px}
+.statusbar{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.statusbar button{font:500 12px var(--body);border:1px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:999px;padding:3px 10px;cursor:pointer}
+.statusbar button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.subform{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.subform .row2{display:flex;gap:8px;flex-wrap:wrap}
+.subform input[type=number],.subform input[type=text]{flex:1;min-width:110px}
+@media (prefers-color-scheme:dark){.base-tiles{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.3)}}
+.replay{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface2)}
+.replay input[type=range]{flex:1;min-width:180px;accent-color:var(--fire)}
+.replay .clock{font:500 14px var(--mono);font-variant-numeric:tabular-nums;min-width:150px}
+.replay .clock.future{color:var(--fire)}
+.duo{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:16px}
+@media (max-width:960px){.duo{grid-template-columns:minmax(0,1fr)}}
+.prio{width:100%;border-collapse:collapse;font-size:13.5px}
+.prio th{font:600 11.5px var(--body);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+.prio td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+.prio tr:last-child td{border-bottom:0}
+.prio .rank{font:600 13px var(--mono);color:var(--fire)}
+.prio .cities{font-size:12px;color:var(--muted)}
+.prio button{font:600 12px var(--body);border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:5px;padding:3px 8px;cursor:pointer;white-space:nowrap}
+.tablewrap{overflow-x:auto}
+.ask{display:flex;flex-direction:row;gap:8px;flex-wrap:wrap;align-items:stretch}
+.ask input{flex:1;min-width:180px;font:14px var(--body);color:var(--ink);background:var(--surface2);border:1px solid var(--line);border-radius:6px;padding:8px}
+.mic{width:42px;padding:0;display:grid;place-items:center;font-size:16px}
+.mic.on{background:var(--fire)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chips button{font:500 12.5px var(--body);border:1px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:999px;padding:4px 10px;cursor:pointer;text-align:left}
+.answer{margin-top:10px;font-size:14.5px;line-height:1.6;background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:12px;min-height:64px}
+.satrow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:6px}
+.satcell{display:flex;flex-direction:column;gap:2px;font-size:12.5px}
+.satcell .verdict{margin:0}
+.satimg{position:relative;aspect-ratio:1/1;max-width:150px;border-radius:6px;overflow:hidden;background:var(--surface2);border:1px solid var(--line)}
+.satimg img{width:100%;height:100%;display:block;image-rendering:pixelated}
+.satimg i{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border:2px solid var(--ink);border-radius:50%}
+.satimg.empty{display:grid;place-items:center;color:var(--muted);font-size:12px;text-align:center;padding:6px}
+.req td{vertical-align:top}
+.req ul{margin:0;padding-left:16px}
+.req .ok{color:var(--live);font-weight:600}
+.req .warn{color:var(--sample);font-weight:600}
+#reqPanel summary{cursor:pointer;list-style-position:outside}
+.headright{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+@media (max-width:700px){.headright{align-items:flex-start}}
+.tour{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);width:min(560px,calc(100% - 32px));z-index:2000;background:var(--surface);border:1px solid var(--accent);border-radius:10px;padding:12px 14px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+.tour b{font:600 16px var(--body);display:block}
+.tour p{margin:4px 0 0;font-size:14px}
+.tour-top{display:flex;gap:10px;align-items:center;font-size:12px;color:var(--muted);margin-bottom:6px}
+.tour-bar{flex:1;height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.tour-bar i{display:block;height:100%;width:0;background:var(--accent)}
+.tour-on{outline:3px solid var(--accent);outline-offset:3px;box-shadow:0 0 0 9999px rgba(10,16,20,.18)}
+#blindChart{width:100%;height:auto;display:block}
+#blindChart .bar{fill:var(--fire)} #blindChart .bar:hover{opacity:.8}
+#blindChart .win{fill:var(--citizen);opacity:.12}
+#blindChart text{font:11px var(--mono);fill:var(--muted)}
+#blindChart .lbl{fill:var(--ink)}
+.fnlogs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:960px){.fnlogs{grid-template-columns:repeat(2,minmax(0,1fr))}} @media (max-width:560px){.fnlogs{grid-template-columns:minmax(0,1fr)}}
+.fnlogs div{font:11.5px/1.45 var(--mono);background:var(--surface2);border:1px solid var(--line);border-radius:6px;padding:8px;max-height:180px;overflow:auto}
+.fnlogs b{font:600 12px var(--body);display:block;margin-bottom:4px}
+.head-dot{animation:pulse 1s ease-in-out infinite alternate}
+@keyframes pulse{from{opacity:.5}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Dhuan<span>Trace</span></h1>
+      <p class="tag">Finds the farm fires satellites miss after 4 p.m., traces whose smoke is reaching your city, and drafts the alert for the district that can act.</p>
+    </div>
+    <div class="headright">
+      <div class="pick"><button class="btn ghost" type="button" id="langBtn" lang="hi">हिंदी</button><button class="btn" type="button" id="tourBtn">▶ 60-second tour</button></div>
+      <div class="status" id="status" aria-label="Data source status"></div>
+    </div>
+  </header>
+  <div class="tour" id="tour" role="dialog" aria-live="polite" aria-label="Guided tour" hidden>
+    <div class="tour-top"><span class="num" id="tourN"></span><div class="tour-bar"><i id="tourBar"></i></div></div>
+    <b id="tourT"></b>
+    <p id="tourX"></p>
+    <div class="actions" style="margin-top:6px"><button class="btn ghost" type="button" id="tourBack">Back</button><button class="btn ghost" type="button" id="tourPause">Pause</button><button class="btn" type="button" id="tourNext">Next</button><button class="btn ghost" type="button" id="tourStop">End tour</button></div>
+  </div>
+
+
+  <div class="grid">
+    <section class="panel" aria-label="Map">
+      <h2>Fires, smoke paths and air quality · <span class="rname">Madhya Pradesh</span></h2>
+      <p class="hint" id="regionLine" style="margin:0 0 8px"></p>
+      <div id="map" role="application" aria-label="Map. Click anywhere to analyse the air there or to report smoke."></div>
+      <div class="toolbar">
+        <span>Fires</span>
+        <div class="seg" role="group" aria-label="Fire time window">
+          <button type="button" data-h="24" aria-pressed="true">Last 24 h</button>
+          <button type="button" data-h="48" aria-pressed="false">Last 48 h</button>
+        </div>
+        <label><input type="checkbox" id="showPaths" checked> Smoke paths</label>
+        <label><input type="checkbox" id="showStations" checked> CPCB stations</label>
+        <label><input type="checkbox" id="showHot" checked> Hidden hotspots</label>
+        <label><input type="checkbox" id="showSensors" checked> Citizen sensors</label>
+        <label><input type="checkbox" id="showCorr" checked> Corridors</label>
+        <label><input type="checkbox" id="showSat"> Satellite image</label>
+        <select id="satDate" aria-label="Satellite image date" hidden></select>
+        <span id="fireCount" class="num"></span>
+      </div>
+      <div class="replay" aria-label="Replay">
+        <button class="btn" type="button" id="play">▶ Replay 48 h</button>
+        <input type="range" id="tl" min="-48" max="24" step="1" value="0" aria-label="Replay time">
+        <span class="clock" id="tlClock">Now</span>
+        <button class="btn ghost" type="button" id="live" hidden>Back to now</button>
+      </div>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--fire)"></i>Satellite fire detection</span>
+        <span><i class="dot" style="border:2px solid var(--citizen)"></i>Citizen photo report</span>
+        <span><i class="dot" style="background:var(--accent);border-radius:2px;height:3px;width:18px"></i>Where the air came from (36 h)</span>
+        <span><i class="dot" style="background:var(--fire);border-radius:2px;height:2px;width:18px;opacity:.7"></i>Smoke path to the city</span>
+        <span><i class="dot" style="background:var(--hot);border-radius:2px;transform:rotate(45deg)"></i>Hidden hotspot</span>
+        <span><i class="dot" style="background:#8DBB3A;border-radius:1px"></i>Citizen sensor</span>
+        <span><i class="dot" style="background:none;border-top:3px dashed #D9A91E;border-radius:0;height:0;width:18px"></i>Industrial corridor</span>
+      </div>
+    </section>
+
+    <section class="panel" id="side" aria-label="Analysis">
+      <h2>Analyse a city</h2>
+      <div class="pick">
+        <select id="city" aria-label="City"></select>
+        <span class="hint">or click any spot on the map</span>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="k">AQI now</div><div class="v" id="sNow">…</div><div class="s" id="sNowSrc"></div></div>
+        <div class="stat"><div class="k">Peak in next 24 h</div><div class="v" id="sPeak">…</div><div class="s" id="sPeakT"></div></div>
+        <div class="stat"><div class="k">Farm-fire smoke now</div><div class="v" id="sFire">…</div><div class="s">AQI points added</div></div>
+        <div class="stat"><div class="k">Smoke on the way</div><div class="v" id="sWay">…</div><div class="s" id="sWayS"></div></div>
+      </div>
+      <div class="callout" id="gap" hidden></div>
+
+      <h2 style="margin-top:16px">Whose fires are in this air</h2>
+      <div class="rows" id="attrib"></div>
+
+      <h2 style="margin-top:16px">AQI forecast</h2>
+      <svg id="chart" viewBox="0 0 440 180" role="img" aria-label="AQI forecast chart"></svg>
+      <div class="legend" style="margin-top:2px">
+        <span><i class="dot" style="background:var(--muted);border-radius:2px;height:2px;width:18px"></i>CAMS model (satellite fires only)</span>
+        <span><i class="dot" style="background:var(--fire);opacity:.25;border-radius:2px;height:10px;width:18px"></i>Likely range (80%)</span>
+        <span id="smLegend" hidden><i class="dot" style="background:var(--citizen);border-radius:2px;height:2px;width:18px"></i>Shared city model (federated, live CPCB)</span>
+        <span><i class="dot" style="background:var(--fire);border-radius:2px;height:3px;width:18px"></i>DhuanTrace (+ citizen-reported fires)</span>
+      </div>
+      <p class="hint" id="rangeNote" style="margin:6px 0 0"></p>
+    </section>
+  </div>
+
+  <section class="panel" id="blindPanel" aria-label="When satellites look">
+    <h2>When do the satellites look? · fire detections by hour, last 48 h</h2>
+    <svg id="blindChart" role="img" aria-label="Fire detections by hour of day (IST)"></svg>
+    <p class="small" id="blindNote" style="margin:6px 0 0"></p>
+    <details class="hint" style="margin-top:4px"><summary>Table</summary><div class="tablewrap"><table class="skill"><thead><tr><th>Hour (IST)</th><th>Detections</th></tr></thead><tbody id="blindRows"></tbody></table></div></details>
+  </section>
+
+  <section class="panel" id="reqPanel" aria-label="How DhuanTrace meets Track 02">
+    <details open>
+      <summary><h2 style="display:inline">Track 02 problem statement → what DhuanTrace does → proof</h2></summary>
+      <p class="hint" style="margin:8px 0 10px">Every part of the problem statement, the features that meet it, a live check against this running app, and the automated tests that prove it. A test fails if any listed proof stops existing.</p>
+      <div class="tablewrap"><table class="skill req"><thead><tr><th>#</th><th>Track 02 asks for</th><th>What DhuanTrace does</th><th>Live check now</th><th>Proof</th><th></th></tr></thead><tbody id="reqRows"><tr><td colspan="6" class="muted">Checking…</td></tr></tbody></table></div>
+    </details>
+  </section>
+
+  <div class="duo">
+    <section class="panel" aria-label="Priority fire districts">
+      <h2>Stop these fires first · across <span id="ncities">12</span> cities</h2>
+      <p class="hint" style="margin:0 0 10px">Districts ranked by how many people breathe their smoke now or within 24 hours. Farmers mostly burn between 4 and 7 p.m., so teams sent before 4 p.m. can prevent the next round.</p>
+      <div class="tablewrap"><table class="prio"><thead><tr><th>#</th><th>District</th><th>People exposed</th><th>AQI added</th><th>Fires</th><th></th></tr></thead><tbody id="prio"><tr><td colspan="6" class="muted">Loading…</td></tr></tbody></table></div>
+      <p class="hint" style="margin:8px 0 0" id="prioNote"></p>
+    </section>
+
+    <section class="panel" aria-label="Ask DhuanTrace">
+      <h2>Ask DhuanTrace</h2>
+      <form class="ask" id="askForm">
+        <input id="q" type="text" placeholder="e.g. Kal AQI kab sabse zyada hoga?" aria-label="Question" autocomplete="off">
+        <button class="btn mic" type="button" id="mic" title="Speak your question" aria-label="Speak your question">🎤</button>
+        <button class="btn" type="submit" id="askBtn">Ask</button>
+      </form>
+      <div class="chips" id="chips"></div>
+      <div class="answer" id="answer"><span class="muted">Ask in Hindi, English or any of the listed languages. Answers use only the numbers on this page. The language follows the alert language picker below.</span></div>
+      <div class="hint" id="answerBy" style="margin-top:6px"></div>
+    </section>
+  </div>
+
+  <div class="duo">
+    <section class="panel" aria-label="Satellite check">
+      <h2>Satellite check · Gemini reads the real image</h2>
+      <p class="hint" style="margin:0 0 10px">Pulls NASA's true-colour VIIRS image over a fire cluster and asks Gemini whether the smoke drifts the way our wind model predicts. Yellow rings are satellite fire detections; the blue arrow is the model's smoke direction.</p>
+      <div class="pick"><select id="vDist" aria-label="District to check"></select><button class="btn" type="button" id="vBtn">Check with satellite</button></div>
+      <div class="sat" id="sat" style="margin-top:10px"><div class="empty">Pick a district and press Check with satellite.</div></div>
+      <div class="verdict" id="verdict"></div>
+      <p class="small" id="vText" style="margin:8px 0 0"></p>
+      <p class="hint" id="vNote" style="margin:4px 0 0"></p>
+    </section>
+
+    <section class="panel" aria-label="Accuracy">
+      <h2>How accurate is this? · live check</h2>
+      <p class="hint" style="margin:0 0 10px">The model's AQI at each CPCB station compared with what that station reports right now.</p>
+      <div class="big3">
+        <div><b id="kMae">…</b><small>average error (AQI points)</small></div>
+        <div><b id="kBand">…</b><small>same CPCB category</small></div>
+        <div><b id="kBias">…</b><small>bias (model minus station)</small></div>
+      </div>
+      <div class="tablewrap"><table class="skill"><thead><tr><th>Station</th><th>CPCB</th><th>Model</th><th>Diff</th></tr></thead><tbody id="skillRows"></tbody></table></div>
+      <p class="hint" id="skillNote" style="margin:8px 0 0"></p>
+    </section>
+  </div>
+
+  <div class="duo">
+    <section class="panel" aria-label="Hidden hotspots">
+      <h2>Hidden hotspots · pollution the models can't explain</h2>
+      <p class="hint" style="margin:0 0 10px">Every CPCB station and citizen sensor is compared with what the CAMS model plus traced farm-fire smoke expects. Places far above the rest point to a local source: a factory, burning garbage, dust. Citizen reports, nearby industry and NASA's satellite layers for aerosol and NO₂ are added as evidence. In the satellite pictures the circle is the spot; the app compares it with the ring around it. These are daily daytime views of the whole air column, not ground readings.</p>
+      <div id="hotList"><p class="hint">Checking every measuring point…</p></div>
+      <p class="hint" id="hotNote" style="margin:8px 0 0"></p>
+    </section>
+
+    <section class="panel" aria-label="Economic corridors">
+      <h2>Economic corridors · next 48 hours</h2>
+      <p class="hint" style="margin:0 0 10px">The worst air along each industrial corridor, hour by hour, with an alert when it moves into a worse CPCB category or jumps by 50+ in six hours.</p>
+      <div id="corrList"><p class="hint">Forecasting corridors…</p></div>
+    </section>
+  </div>
+
+  <div class="duo">
+    <section class="panel" aria-label="Forecast ledger">
+      <h2>Forecast ledger · written before, checked after</h2>
+      <p class="hint" style="margin:0 0 10px">Every hour the app writes down its forecast for 3, 6, 12 and 24 hours ahead, before that time comes. When it arrives, the forecast is checked against the CPCB reading. Nothing is filled in or changed afterwards.</p>
+      <p class="small" id="ldMode" style="margin:0 0 8px"></p>
+      <div class="big3" id="ldBig" hidden>
+        <div><b id="ldDt">…</b><small>DhuanTrace average error</small></div>
+        <div><b id="ldSkill">…</b><small>better than "stays the same"</small></div>
+        <div><b id="ldCover">…</b><small>readings inside the forecast range (goal 80%)</small></div>
+      </div>
+      <div class="tablewrap"><table class="skill" id="ldTable" hidden><thead><tr><th>Ahead</th><th>Checked</th><th>DhuanTrace</th><th>CAMS</th><th>Stays same</th><th>Right category</th></tr></thead><tbody id="ldRows"></tbody></table></div>
+      <p class="hint" id="ldNote" style="margin:8px 0 0"></p>
+    </section>
+
+    <section class="panel" aria-label="Smoke across state borders">
+      <h2>Smoke across state borders</h2>
+      <p class="hint" style="margin:0 0 10px">How much farm-fire smoke <span class="rname">Madhya Pradesh</span> receives from each neighbouring state, and how much of its smoke reaches big cities across the border. States can read this as an open bulletin at <span class="num">/api/interstate</span>.</p>
+      <div class="tablewrap"><table class="skill"><thead><tr><th>State</th><th>Into this region</th><th>From this region</th></tr></thead><tbody id="isRows"><tr><td colspan="3" class="muted">Loading…</td></tr></tbody></table></div>
+      <div id="isOut" class="small" style="margin-top:8px"></div>
+      <p class="hint" id="isNote" style="margin:8px 0 0"></p>
+    </section>
+  </div>
+
+  <div class="duo">
+    <section class="panel" aria-label="Federated learning">
+      <h2>Cities learning together · federated model</h2>
+      <p class="hint" style="margin:0 0 10px">Each city learns how far the CAMS forecast is off at its own CPCB stations and shares only its model weights, never its data. The average (FedAvg) corrects forecasts for every city, including ones without history.</p>
+      <p class="small" id="fedMode" style="margin:0 0 8px"></p>
+      <div class="big3" id="fedBig" hidden>
+        <div><b id="fCams">…</b><small>error with CAMS alone</small></div>
+        <div><b id="fFed">…</b><small>error with the shared model</small></div>
+        <div><b id="fUnseen">…</b><small>new city, never trained on</small></div>
+      </div>
+      <svg id="fedChart" viewBox="0 0 440 120" role="img" aria-label="Error by training round" hidden></svg>
+      <div class="tablewrap"><table class="skill" id="fedTable" hidden><thead><tr><th>City node</th><th>Samples</th><th>CAMS</th><th>Own model</th><th>Shared</th></tr></thead><tbody id="fedRows"></tbody></table></div>
+      <div class="actions">
+        <button class="btn ghost" type="button" id="fedSim">Show simulation</button>
+        <button class="btn ghost" type="button" id="copyModel">Copy model for other states</button>
+        <span class="hint" id="fedMsg"></span>
+      </div>
+      <p class="hint" style="margin:6px 0 0">Other states join by posting their weights to <span class="num">/api/federated/update</span>; the shared model is at <span class="num">/api/model</span>.</p>
+    </section>
+
+    <section class="panel" aria-label="Alert log">
+      <h2>Alert log · from draft to result</h2>
+      <p class="hint" style="margin:0 0 10px">Saved alerts move from drafted to resolved. Six hours after action, the app compares the AQI change with the change the model expected from weather alone.</p>
+      <div id="alertList"><p class="hint">No alerts saved yet. Draft one below and press Save to alert log.</p></div>
+    </section>
+  </div>
+
+  <section class="panel" id="fedNetPanel" aria-label="Federated network">
+    <h2>Federated network · separate nodes that share only weights</h2>
+    <p class="hint" style="margin:0 0 10px">Four separate programs, each with its own process, port and memory, stand in for the regions and neighbouring states of this node (named in the table). Each keeps its own air-quality history. The coordinator sends out the shared model; each node trains on its own data and sends back five numbers. Every message is signed, and any reply carrying anything beyond the protocol's fields is refused.</p>
+    <div class="actions" style="margin-top:0"><button class="btn" type="button" id="fnRun">Start 4 nodes and train</button><span class="hint" id="fnMsg"></span></div>
+    <div id="fnOut" hidden>
+      <p class="small" id="fnMode" style="margin:10px 0 8px"></p>
+      <div class="big3">
+        <div><b id="fnWire">…</b><small>messages over the network</small></div>
+        <div><b id="fnRows">0</b><small>raw data rows received by the coordinator</small></div>
+        <div><b id="fnNew">…</b><small>error for a node that never trained (CAMS alone in brackets)</small></div>
+      </div>
+      <div class="tablewrap"><table class="skill"><thead><tr><th>Node</th><th>Process</th><th>Rows kept at node</th><th>CAMS</th><th>Alone</th><th>Shared</th><th>Shared + own tuning</th><th>As a new member</th></tr></thead><tbody id="fnTable"></tbody></table></div>
+      <p class="small" id="fnTake" style="margin:10px 0 0"></p>
+      <p class="hint" id="fnFields" style="margin:6px 0 0"></p>
+      <h2 style="margin-top:14px">What each node printed</h2>
+      <div class="fnlogs" id="fnLogs"></div>
+    </div>
+    <p class="hint" style="margin:8px 0 0">Real deployment: run <span class="num">node fednode.js</span> on each state's server with <span class="num">FED_REGION</span> and a shared <span class="num">FED_SECRET</span>, and list their addresses in <span class="num">FED_PEERS</span>. Protocol: <span class="num">dhuantrace.fednet/1</span>.</p>
+  </section>
+
+  <div class="lower">
+    <section class="panel" aria-label="Report smoke">
+      <h2>Report smoke or burning</h2>
+      <form id="rform">
+        <input id="photo" type="file" accept="image/*" capture="environment" aria-label="Photo">
+        <div class="pick">
+          <input id="rloc" type="text" readonly placeholder="Location: click the map" aria-label="Report location" style="flex:1;min-width:150px">
+          <button type="button" class="btn ghost" id="geo">Use my location</button>
+        </div>
+        <button class="btn" type="submit" id="rsend">Send report</button>
+        <span class="hint" id="rmsg">Gemini reads the photo, names the smoke source and adds it to the map. Evening reports fill the gap the satellites leave.</span>
+        <span class="hint privacy">🔒 Your photo and its rough location (about 1 km) appear on the public map. No name or phone number is asked or stored. Please keep faces and vehicle number plates out of the photo.</span>
+      </form>
+      <div id="rresult" style="margin-top:10px"></div>
+      <form id="sform" class="subform">
+        <b class="small">Send a sensor reading</b>
+        <span class="hint">Have a low-cost PM2.5 meter? Enter its reading. It uses the location above and is calibrated against the nearest CPCB station.</span>
+        <div class="row2">
+          <input id="sDev" type="text" placeholder="Device name, e.g. my-meter-1" aria-label="Device name" maxlength="40">
+          <input id="sPm25" type="number" min="0" max="999" step="0.1" placeholder="PM2.5 µg/m³" aria-label="PM2.5">
+          <input id="sPm10" type="number" min="0" max="1999" step="0.1" placeholder="PM10 (optional)" aria-label="PM10">
+        </div>
+        <button class="btn ghost" type="submit" id="sSend">Send reading</button>
+        <span class="hint" id="smsg"></span>
+      </form>
+    </section>
+
+    <section class="panel" aria-label="Alert">
+      <h2>Alert for authorities</h2>
+      <div class="pick">
+        <select id="lang" aria-label="Language"></select>
+        <button class="btn" type="button" id="draft">Draft alert</button>
+      </div>
+      <div class="letter" id="letter" style="margin-top:10px"><span class="muted">Choose a language and press Draft alert. Gemini writes it using only the numbers shown on this page.</span></div>
+      <p class="hint" style="margin:8px 0 0">This is a draft for an official to check and send. DhuanTrace never sends an alert by itself, and it names districts, never farmers.</p>
+      <div class="actions"><button class="btn ghost" type="button" id="copyLetter">Copy</button><button class="btn" type="button" id="saveAlert" disabled>Save to alert log</button><span class="hint" id="letterBy"></span></div>
+    </section>
+
+    <section class="panel" aria-label="Shared forecast packet">
+      <h2>Shared forecast packet</h2>
+      <p class="hint" style="margin:0 0 10px">Each city node publishes its forecast and fire attribution in one open JSON format, so neighbouring cities and states can load each other's results. Machine endpoint: <span class="num" id="pktUrl"></span></p>
+      <pre id="packet">Loading…</pre>
+      <div class="actions"><button class="btn ghost" type="button" id="copyPacket">Copy JSON</button><span class="hint" id="pktMsg"></span></div>
+    </section>
+  </div>
+
+  <section class="panel" id="sysPanel" aria-label="System health">
+    <h2>System health · is every part working right now?</h2>
+    <p class="hint" style="margin:0 0 10px">Each data source says whether it is live or on labelled sample data, and why. Request counts and response times are measured by the server itself. API reference: <a href="/api-docs.html">API docs</a> · <a class="num" href="/api/openapi.json">/api/openapi.json</a></p>
+    <div class="duo" style="gap:16px">
+      <div class="tablewrap"><table class="skill"><thead><tr><th>Source</th><th>State</th><th>Detail</th></tr></thead><tbody id="sysSources"></tbody></table></div>
+      <div>
+        <div class="big3"><div><b id="sysUp">…</b><small>running for</small></div><div><b id="sysReq">…</b><small>requests served</small></div><div><b id="sysErr">…</b><small>server errors</small></div></div>
+        <div class="tablewrap"><table class="skill"><thead><tr><th>Busiest endpoints</th><th>Calls</th><th>Median</th><th>95%</th><th>Refused</th></tr></thead><tbody id="sysRoutes"></tbody></table></div>
+      </div>
+    </div>
+    <div class="actions"><button class="btn ghost" type="button" id="sysRefresh">Refresh</button><span class="hint" id="sysNote"></span></div>
+  </section>
+
+  <footer class="panel">
+    <b>Data:</b> NASA FIRMS (VIIRS S-NPP, NOAA-20, NOAA-21, MODIS) · CPCB real-time AQI via data.gov.in, with the World Air Quality Index Project (<a href="https://aqicn.org" target="_blank" rel="noopener">aqicn.org</a>) as automatic backup · Open-Meteo hourly wind and CAMS air-quality forecast · Google Gemini for photo reading and alerts.
+    <b>Method:</b> smoke from every fire and every citizen report is followed forward on the hourly wind field for 36 hours; paths passing within 30 km of a place count toward it. AQI uses CPCB NAQI breakpoints. Screening-level estimates for decision support, not an official forecast.
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="/i18n.js"></script>
+<script>
+(() => {
+const $ = (id) => document.getElementById(id);
+const HOUR = 3600e3;
+const fmt = (ms, opts) => new Date(ms).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: false, ...opts });
+const fmtDay = (ms) => fmt(ms, { day: 'numeric', month: 'short' });
+const istHour = (ms) => new Date(ms + 5.5 * HOUR).getUTCHours();
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const LABEL = { crop_residue_burning: 'Crop residue burning', garbage_burning: 'Garbage burning', industrial_emission: 'Industrial emission', construction_dust: 'Construction dust', vehicle_exhaust: 'Vehicle exhaust', forest_fire: 'Forest fire', not_pollution: 'Not pollution', unverified: 'Not yet verified' };
+
+async function get(url, opts) {
+  const r = await fetch(url, opts);
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || `Request failed (${r.status})`);
+  return j;
+}
+
+// ---------- map ----------
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+const map = L.map('map', { zoomSnap: 0.5 }).setView([23.5, 78.2], 6.5);
+let REGION = null; // the region pack this node runs (/api/region)
+const homeView = () => { if (REGION) map.fitBounds([[REGION.bbox.s + 0.6, REGION.bbox.w + 0.6], [REGION.bbox.n - 0.6, REGION.bbox.e - 0.6]]); else map.setView([23.5, 78.2], 6.5); };
+const baseLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 13, attribution: '&copy; OpenStreetMap contributors', className: 'base-tiles',
+}).addTo(map);
+const layers = { hot: L.layerGroup().addTo(map), sensors: L.layerGroup().addTo(map), corr: L.layerGroup().addTo(map), fires: L.layerGroup().addTo(map), reports: L.layerGroup().addTo(map), stations: L.layerGroup().addTo(map), traj: L.layerGroup().addTo(map), paths: L.layerGroup().addTo(map), place: L.layerGroup().addTo(map) };
+
+let hours = 24, place = { city: 'indore' }, analysis = null, reportLoc = null, cities = [];
+let replayT = null; // null = live view; otherwise the replay time in ms
+
+function fireLayer(fires) {
+  layers.fires.clearLayers();
+  const now = Date.now();
+  const shown = replayT == null ? fires.filter((f) => f.ts >= now - hours * HOUR) : fires.filter((f) => f.ts <= replayT && f.ts >= replayT - 24 * HOUR);
+  for (const f of shown) {
+    const fresh = replayT != null && replayT - f.ts < 3 * HOUR;
+    L.circleMarker([f.lat, f.lon], { radius: 3 + Math.min(9, f.frp / 5) + (fresh ? 4 : 0), color: fresh ? '#FFD166' : css('--fire'), weight: fresh ? 2 : 1, fillColor: css('--fire'), fillOpacity: fresh ? 0.95 : 0.7 })
+      .bindPopup(`<div class="pop"><b>Satellite fire detection</b><br>${esc(fmtDay(f.ts))} IST · ${esc(f.source.replace(/_/g, ' '))}<br>Fire power ${f.frp} MW · ${esc(f.district)} district</div>`)
+      .addTo(layers.fires);
+  }
+  $('fireCount').textContent = `${shown.length} detections shown`;
+}
+
+const TRUST_COLOR = { high: '#2E8B57', medium: '#B7791F', low: '#D12B3F' };
+function reportLayer(reports) {
+  layers.reports.clearLayers();
+  for (const r of reports.filter((x) => replayT == null || x.ts <= replayT)) {
+    const a = r.analysis || {};
+    const after = istHour(r.ts) >= 15;
+    L.circleMarker([r.lat, r.lon], { radius: 9, color: css('--citizen'), weight: 3, fillOpacity: 0.08 })
+      .bindPopup(`<div class="pop"><b>${esc(LABEL[a.source_type] || a.source_type)}</b>${r.example ? ' <span class="badge">example</span>' : ''}<br>
+        ${esc(fmtDay(r.ts))} IST · ${esc(r.district)}${after ? ' · <span class="badge p">after satellite pass</span>' : ''}<br>
+        Smoke ${esc(a.smoke_density)} · confidence ${Math.round((a.confidence || 0) * 100)}%${r.trust ? ` · <b style="color:${TRUST_COLOR[r.trust.level]}">trust ${Math.round(r.trust.score * 100)}%</b>` : ''}<br><span class="muted">${esc(a.explanation)}</span>
+        ${r.has_photo ? `<img src="/api/reports/${encodeURIComponent(r.id)}/photo" alt="Reported photo">` : ''}</div>`)
+      .addTo(layers.reports);
+  }
+}
+
+function stationLayer(stations) {
+  layers.stations.clearLayers();
+  if (!$('showStations').checked) return;
+  for (const s of stations) {
+    const icon = L.divIcon({ className: '', html: `<div class="aqi-pin" style="background:${s.category.color};color:${inkOn(s.category.color)}">${s.aqi}</div>`, iconSize: null, iconAnchor: [14, 9] });
+    L.marker([s.lat, s.lon], { icon, keyboard: false })
+      .bindPopup(`<div class="pop"><b>${esc(s.station)}</b><br>AQI ${s.aqi} (${esc(s.category.name)}) · main pollutant ${esc(s.dominant)}<br><span class="muted">Updated ${esc(/^\d{4}-\d\d-\d\dT/.test(s.updated || '') ? fmtDay(Date.parse(s.updated)) + ' IST' : s.updated)}</span></div>`)
+      .addTo(layers.stations);
+  }
+}
+
+function drawAnalysis(a) {
+  layers.traj.clearLayers(); layers.paths.clearLayers(); layers.place.clearLayers();
+  const back = a.back_trajectory.map((p) => [p.lat, p.lon]);
+  L.polyline(back, { color: css('--accent'), weight: 3, dashArray: '7 6' }).addTo(layers.traj);
+  a.back_trajectory.filter((p) => p.k && p.k % 12 === 0).forEach((p) =>
+    L.circleMarker([p.lat, p.lon], { radius: 4, color: css('--accent'), fillOpacity: 1 }).bindTooltip(`${p.k} h ago`, { permanent: true, direction: 'right', className: '' }).addTo(layers.traj));
+  if ($('showPaths').checked) {
+    for (const s of a.smoke_paths) {
+      let pts = s.path;
+      if (replayT != null) {
+        if (s.ts > replayT) continue;
+        const n = Math.min(pts.length - 1, Math.floor((replayT - s.ts) / HOUR));
+        pts = pts.slice(0, n + 1);
+        const reached = n >= s.path.length - 1;
+        if (!reached && pts.length) L.circleMarker(pts[pts.length - 1], { radius: 3.5, color: s.kind === 'citizen' ? css('--citizen') : css('--fire'), fillOpacity: 1, className: 'head-dot' }).addTo(layers.paths);
+        if (pts.length < 2) continue;
+      }
+      L.polyline(pts, { color: s.kind === 'citizen' ? css('--citizen') : css('--fire'), weight: replayT != null ? 2 : 1.5, opacity: replayT != null ? 0.75 : 0.55 })
+        .bindTooltip(`${s.kind === 'citizen' ? 'Citizen-reported' : 'Satellite'} fire, ${s.district}: smoke ${s.arrival > Date.now() ? 'arrives' : 'arrived'} ${fmtDay(s.arrival)}`)
+        .addTo(layers.paths);
+    }
+  }
+  let label = a.place.name, pinStyle = '';
+  if (replayT != null) {
+    const pt = a.forecast.reduce((best, p) => (Math.abs(p.t - replayT) < Math.abs(best.t - replayT) ? p : best), a.forecast[0]);
+    if (pt && Math.abs(pt.t - replayT) <= HOUR) {
+      const cat = BANDS.find((b) => pt.corrected <= b[0]);
+      label = `${a.place.name} · AQI ${pt.corrected}`; pinStyle = `background:${cat[1]};box-shadow:0 0 0 4px ${cat[1]}55`;
+    }
+  }
+  L.marker([a.place.lat, a.place.lon], { icon: L.divIcon({ className: '', html: `<div class="place-pin" style="${pinStyle}"></div>`, iconSize: [18, 18], iconAnchor: [9, 9] }) })
+    .bindTooltip(label, { permanent: true, direction: 'top', offset: [0, -10] }).addTo(layers.place);
+}
+
+const BANDS = [[50, '#3AA757'], [100, '#8DBB3A'], [200, '#D9A91E'], [300, '#EB7A1F'], [400, '#D12B3F'], [Infinity, '#7B1E3A']];
+
+// ---------- side panel ----------
+// Dark text on light category colours (yellow, light green), white on dark ones: WCAG contrast either way
+function inkOn(hex) { const n = parseInt(String(hex).slice(1), 16), lin = (c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; }; const L = 0.2126 * lin(n >> 16) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255); return L > 0.18 ? '#172026' : '#fff'; }
+function chip(cat) { return cat ? `<span class="chip" style="background:${cat.color};color:${inkOn(cat.color)}">${esc(cat.name)}</span>` : ''; }
+
+function renderSide(a) {
+  $('sNow').innerHTML = (a.aqi_now.value ?? '–') + chip(a.aqi_now.category);
+  $('sNowSrc').textContent = a.aqi_now.source;
+  $('sPeak').innerHTML = a.peak_24h ? a.peak_24h.value + chip(a.peak_24h.category) : '–';
+  $('sPeakT').textContent = a.peak_24h ? `at ${fmtDay(a.peak_24h.t)} IST${a.peak_24h.lo != null ? ` · likely ${a.peak_24h.lo}–${a.peak_24h.hi}` : ''}` : '';
+  $('rangeNote').textContent = a.forecast_range ? `Shaded band: the range the AQI falls in 8 times out of 10. ${a.forecast_range.note}.` : '';
+  $('sFire').textContent = '+' + a.fire_influence_now;
+  $('sWay').textContent = a.upcoming.fires;
+  $('sWayS').textContent = a.upcoming.first_arrival ? `fires, first smoke ${fmt(a.upcoming.first_arrival)} IST` : 'fires in the next 24 h';
+
+  const gap = $('gap');
+  if (a.upcoming.citizen_only) {
+    gap.hidden = false;
+    gap.innerHTML = `<b>${a.upcoming.citizen_only} fire${a.upcoming.citizen_only > 1 ? 's' : ''} only citizens saw</b> will send smoke here in the next 24 h. Satellites passed before they started, so the standard CAMS forecast does not include them.`;
+  } else gap.hidden = true;
+
+  const rows = $('attrib'); rows.innerHTML = '';
+  // Shares only mean something when the smoke itself is noticeable; below 1 AQI point they would mislead
+  const real = a.fire_influence_now >= 1 ? a.attribution.filter((d) => d.aqi_points >= 1) : [];
+  if (!real.length) {
+    rows.innerHTML = '<p class="hint" style="margin:0">No farm-fire smoke is reaching this place right now.</p>';
+  }
+  for (const d of real.slice(0, 5)) {
+    const div = document.createElement('div'); div.className = 'row';
+    div.innerHTML = `<div><div>${esc(d.district)} <span class="muted small">${d.satellite_fires} satellite · ${d.citizen_reports} citizen · ~${d.travel_h} h travel</span></div><div class="mini" style="width:${Math.max(3, d.share)}%"></div></div><div class="num">${d.share}%</div>`;
+    rows.appendChild(div);
+  }
+  drawChart(a);
+}
+
+function drawChart(a) {
+  const s = $('chart'); s.innerHTML = '';
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (tag, at, text) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); if (text != null) e.textContent = text; s.appendChild(e); return e; };
+  const W = 440, H = 180, l = 34, r = 10, t = 14, b = 26;
+  const F = a.forecast; if (!F.length) return;
+  const t0 = F[0].t, t1 = F[F.length - 1].t, now = a.generated_at;
+  const max = Math.max(150, ...F.map((p) => Math.max(p.corrected, p.shared_model || 0, p.hi || 0))) * 1.12;
+  const x = (tt) => l + ((tt - t0) / (t1 - t0)) * (W - l - r), y = (v) => t + (1 - v / max) * (H - t - b);
+  const grid = css('--grid'), muted = css('--muted');
+  [50, 100, 200, 300, 400].filter((v) => v < max).forEach((v) => {
+    el('line', { x1: l, x2: W - r, y1: y(v), y2: y(v), stroke: grid });
+    el('text', { x: l - 5, y: y(v) + 3, 'text-anchor': 'end', 'font-size': 9.5, fill: muted, 'font-family': css('--mono') }, v);
+  });
+  for (const p of F) if (istHour(p.t) % 12 === 0 && p.t % HOUR === 0) {
+    el('text', { x: x(p.t), y: H - 8, 'text-anchor': 'middle', 'font-size': 9.5, fill: muted, 'font-family': css('--mono') }, istHour(p.t) === 0 ? new Date(p.t).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short' }) : '12:00');
+  }
+  const line = (pts, key) => pts.map((p) => `${x(p.t).toFixed(1)},${y(p[key]).toFixed(1)}`).join(' ');
+  const past = F.filter((p) => p.t <= now + HOUR), fut = F.filter((p) => p.t >= now - HOUR);
+  el('path', { d: `M${x(past[0].t)},${y(0)} L${line(past, 'corrected').replace(/ /g, ' L')} L${x(past[past.length - 1].t)},${y(0)}Z`, fill: css('--accent'), opacity: 0.1 });
+  // Forecast range (10th–90th percentile) as a shaded band under the lines
+  const R = F.filter((p) => p.lo != null && p.hi != null);
+  if (R.length > 1) {
+    const top = R.map((p) => `${x(p.t).toFixed(1)},${y(p.hi).toFixed(1)}`).join(' L');
+    const bottom = [...R].reverse().map((p) => `${x(p.t).toFixed(1)},${y(p.lo).toFixed(1)}`).join(' L');
+    el('path', { d: `M${top} L${bottom}Z`, fill: css('--fire'), opacity: 0.12 });
+  }
+  el('polyline', { points: line(F, 'cams'), fill: 'none', stroke: muted, 'stroke-width': 1.3, 'stroke-dasharray': '3 3' });
+  const SM = F.filter((p) => p.shared_model != null);
+  if (SM.length > 1) el('polyline', { points: line(SM, 'shared_model'), fill: 'none', stroke: css('--citizen'), 'stroke-width': 1.6, 'stroke-dasharray': '6 3' });
+  $('smLegend').hidden = SM.length < 2;
+  el('polyline', { points: line(past, 'corrected'), fill: 'none', stroke: css('--accent'), 'stroke-width': 2 });
+  el('polyline', { points: line(fut, 'corrected'), fill: 'none', stroke: css('--fire'), 'stroke-width': 2.2 });
+  el('line', { x1: x(now), x2: x(now), y1: t, y2: H - b, stroke: css('--ink'), 'stroke-width': 1 });
+  el('text', { x: x(now) + 4, y: t + 2, 'font-size': 10, fill: css('--ink') }, 'now');
+  if (a.peak_24h) {
+    el('circle', { cx: x(a.peak_24h.t), cy: y(a.peak_24h.value), r: 4, fill: css('--fire'), stroke: css('--surface'), 'stroke-width': 2 });
+    el('text', { x: Math.min(W - r - 2, x(a.peak_24h.t) + 6), y: y(a.peak_24h.value) - 6, 'font-size': 10, 'text-anchor': x(a.peak_24h.t) > W - 60 ? 'end' : 'start', fill: css('--fire'), 'font-family': css('--mono') }, 'peak ' + a.peak_24h.value);
+  }
+}
+
+async function loadPacket() {
+  const qs = place.city ? `city=${place.city}` : `lat=${place.lat}&lon=${place.lon}&name=${encodeURIComponent(place.name || '')}`;
+  $('pktUrl').textContent = `/api/packet?${qs}`;
+  try { $('packet').textContent = JSON.stringify(await get(`/api/packet?${qs}`), null, 2); }
+  catch (e) { $('packet').textContent = 'Could not build the packet: ' + e.message; }
+}
+
+async function analyse() {
+  const qs = place.city ? `city=${place.city}` : `lat=${place.lat}&lon=${place.lon}&name=${encodeURIComponent(place.name || '')}`;
+  $('side').classList.add('loading');
+  try {
+    analysis = await get(`/api/analyze?${qs}`);
+    renderSide(analysis); drawAnalysis(analysis);
+    loadPacket();
+  } catch (e) {
+    $('attrib').innerHTML = `<p class="hint" style="margin:0">Could not analyse this place: ${esc(e.message)}. Try again in a minute.</p>`;
+  } finally { $('side').classList.remove('loading'); }
+}
+
+// ---------- data loading ----------
+let fires = [], stations = [], reportsData = [];
+async function loadAll() {
+  const [st, f, s, rep] = await Promise.all([get('/api/status'), get('/api/fires?hours=48'), get('/api/stations'), get('/api/reports')]);
+  fires = f; stations = s;
+  const status = $('status'); status.innerHTML = '';
+  const names = { fires: 'NASA fires', stations: 'CPCB AQI', wind: 'Wind', forecast: 'CAMS forecast', gemini: 'Gemini' };
+  for (const [k, v] of Object.entries(st.sources)) {
+    const b = document.createElement('span'); b.className = 'src ' + v.mode; b.title = v.note;
+    b.innerHTML = `<i></i>${esc(names[k] || k)}: ${v.mode === 'live' ? 'live' : v.mode === 'error' ? 'error' : v.mode === 'off' ? 'off' : 'sample'}`;
+    status.appendChild(b);
+  }
+  const lang = $('lang');
+  if (!lang.options.length) for (const [k, v] of Object.entries(st.languages)) lang.add(new Option(v, k));
+  reportsData = rep;
+  fireLayer(fires); stationLayer(stations); reportLayer(rep);
+  drawBlind(fires);
+}
+let blindT = null; addEventListener('resize', () => { clearTimeout(blindT); blindT = setTimeout(() => drawBlind(fires), 200); });
+
+// ---------- interactions ----------
+document.querySelectorAll('.seg [data-h]').forEach((b) => b.addEventListener('click', () => {
+  hours = +b.dataset.h;
+  document.querySelectorAll('.seg [data-h]').forEach((x) => x.setAttribute('aria-pressed', x === b));
+  fireLayer(fires);
+}));
+$('showPaths').addEventListener('change', () => analysis && drawAnalysis(analysis));
+$('showStations').addEventListener('change', () => stationLayer(stations));
+$('city').addEventListener('change', () => { place = { city: $('city').value }; analyse(); });
+
+function setReportLoc(lat, lon, label) {
+  reportLoc = { lat, lon };
+  $('rloc').value = label || `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+}
+
+map.on('click', (e) => {
+  const { lat, lng } = e.latlng;
+  const div = document.createElement('div'); div.className = 'pop';
+  div.innerHTML = `<b>${lat.toFixed(3)}, ${lng.toFixed(3)}</b><div class="acts"><button type="button" data-a="an">Analyse air here</button><button type="button" data-a="rep">Report smoke here</button></div>`;
+  const pop = L.popup().setLatLng(e.latlng).setContent(div).openOn(map);
+  div.querySelector('[data-a=an]').onclick = () => { map.closePopup(pop); place = { lat: +lat.toFixed(4), lon: +lng.toFixed(4) }; $('city').value = ''; analyse(); };
+  div.querySelector('[data-a=rep]').onclick = () => { map.closePopup(pop); setReportLoc(lat, lng); $('photo').focus(); };
+});
+
+$('geo').addEventListener('click', () => {
+  if (!navigator.geolocation) { $('rmsg').textContent = 'This browser cannot share location. Click the map instead.'; return; }
+  $('rmsg').textContent = 'Finding your location…';
+  navigator.geolocation.getCurrentPosition(
+    (p) => { setReportLoc(p.coords.latitude, p.coords.longitude, 'My location'); $('rmsg').textContent = 'Location set. Attach a photo and send.'; },
+    () => { $('rmsg').textContent = 'Location was not shared. Click the map to set it instead.'; }, { timeout: 10000 });
+});
+
+// Returns the resized JPEG plus a 64-bit perceptual fingerprint (difference hash on a 9×8 grey thumbnail),
+// so the server can spot the same photo sent again even after resizing or recompression
+function shrink(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const s = Math.min(1, 1280 / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      const t = document.createElement('canvas'); t.width = 9; t.height = 8;
+      const tx = t.getContext('2d'); tx.drawImage(img, 0, 0, 9, 8);
+      const px = tx.getImageData(0, 0, 9, 8).data, grey = [];
+      for (let i = 0; i < px.length; i += 4) grey.push(0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2]);
+      let bits = '';
+      for (let row = 0; row < 8; row++) for (let col = 0; col < 8; col++) bits += grey[row * 9 + col] > grey[row * 9 + col + 1] ? '1' : '0';
+      const phash = BigInt('0b' + bits).toString(16).padStart(16, '0');
+      URL.revokeObjectURL(img.src);
+      resolve({ image: c.toDataURL('image/jpeg', 0.85), phash });
+    };
+    img.onerror = () => reject(new Error('This file is not an image the browser can open.'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+function trustBlock(t) {
+  const why = t.reasons.map((x) => `<li>${x.effect > 0 ? '▲' : x.effect < 0 ? '▼' : '•'} ${esc(x.text)}</li>`).join('');
+  return `<div style="margin-top:6px"><span class="badge" style="background:${TRUST_COLOR[t.level]}22;color:${TRUST_COLOR[t.level]}">Trust ${Math.round(t.score * 100)}% · ${t.level}</span>
+    ${t.used_in_forecast ? '' : '<span class="badge f">not used in forecast</span>'}
+    <ul class="small muted" style="margin:4px 0 0;padding-left:18px">${why}</ul></div>`;
+}
+
+$('rform').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const file = $('photo').files[0];
+  if (!file) { $('rmsg').textContent = 'Attach a photo first.'; return; }
+  if (!reportLoc) { $('rmsg').textContent = 'Set the location: click the map and choose Report smoke here, or use your location.'; return; }
+  $('rsend').disabled = true; $('rmsg').textContent = 'Gemini is reading the photo…';
+  try {
+    const { image, phash } = await shrink(file);
+    // The resized copy loses the photo's EXIF, so send the start of the original file where EXIF lives
+    const head = new Uint8Array(await file.slice(0, 131072).arrayBuffer());
+    let bin = ''; for (let i = 0; i < head.length; i += 8192) bin += String.fromCharCode.apply(null, head.subarray(i, i + 8192));
+    const r = await get('/api/reports', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ image, phash, exif_head: btoa(bin), ...reportLoc }) });
+    const a = r.analysis;
+    $('rresult').innerHTML = `<div class="result"><img src="${image}" alt="Your photo"><div>
+      <b>${esc(LABEL[a.source_type] || a.source_type)}</b> <span class="badge">${Math.round(a.confidence * 100)}%</span><br>
+      <span class="badge f">smoke ${esc(a.smoke_density)}</span>${r.after_satellite_pass ? '<span class="badge p">after satellite pass</span>' : ''}
+      <span class="badge">${r.satellite_fires_within_10km} satellite fires within 10 km</span>
+      <div class="small muted" style="margin-top:4px">${esc(a.explanation)}${a.model ? ` · ${esc(a.model)}` : ''}</div>
+      ${r.trust ? trustBlock(r.trust) : ''}</div></div>`;
+    $('rmsg').textContent = a.unverified ? `Report saved but not yet checked (${(a.explanation || '').replace(/^Not checked: |\.$/g, '')}). It counts with lower weight because Gemini has not read it.` : `Report added in ${r.district} district. Forecasts now include its smoke.`;
+    $('photo').value = '';
+    reportsData = await get('/api/reports'); reportLayer(reportsData);
+    analyse(); loadPriorities();
+  } catch (err) { $('rmsg').textContent = err.message; }
+  finally { $('rsend').disabled = false; }
+});
+
+$('draft').addEventListener('click', async () => {
+  const btn = $('draft'); btn.disabled = true; $('letter').innerHTML = '<span class="muted">Drafting…</span>'; $('letterBy').textContent = '';
+  try {
+    const body = place.city ? { city: place.city } : { lat: place.lat, lon: place.lon, name: place.name };
+    const r = await get('/api/alert', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...body, lang: $('lang').value }) });
+    $('letter').innerHTML = `<b>To: ${esc(r.to)}</b>${r.cc ? `<b>Cc: ${esc(r.cc)}</b>` : ''}<b>Subject: ${esc(r.subject)}</b>\n${esc(r.body)}`;
+    lastDraft = { ...body, lang: $('lang').value, to: r.to, cc: r.cc, subject: r.subject, body: r.body, by: r.by }; $('saveAlert').disabled = false;
+    $('letterBy').textContent = r.by === 'gemini' ? `Drafted by ${r.model}` : `Template draft (${r.reason || 'Gemini not connected'})`;
+  } catch (e) { $('letter').textContent = 'Could not draft the alert: ' + e.message; }
+  finally { btn.disabled = false; }
+});
+
+function copy(text, msgId) {
+  navigator.clipboard.writeText(text).then(() => { $(msgId).textContent = 'Copied'; }, () => { $(msgId).textContent = 'Select the text and press Ctrl+C.'; });
+}
+$('copyLetter').addEventListener('click', () => copy($('letter').innerText, 'letterBy'));
+$('copyPacket').addEventListener('click', () => copy($('packet').textContent, 'pktMsg'));
+
+
+// ---------- replay ----------
+let timer = null;
+const nowHour = () => Math.floor(Date.now() / HOUR) * HOUR;
+function setReplay(offsetH) {
+  $('tl').value = offsetH;
+  replayT = nowHour() + offsetH * HOUR;
+  const c = $('tlClock');
+  c.textContent = `${fmtDay(replayT)} IST${offsetH > 0 ? ' · forecast' : offsetH === 0 ? ' · now' : ''}`;
+  c.classList.toggle('future', offsetH > 0);
+  $('live').hidden = false;
+  fireLayer(fires); reportLayer(reportsData);
+  if (analysis) drawAnalysis(analysis);
+}
+function stopPlay() { if (timer) { clearInterval(timer); timer = null; } $('play').textContent = '▶ Replay 48 h'; }
+function backToLive() {
+  stopPlay(); replayT = null; $('tl').value = 0; $('tlClock').textContent = 'Now'; $('tlClock').classList.remove('future'); $('live').hidden = true;
+  fireLayer(fires); reportLayer(reportsData); if (analysis) drawAnalysis(analysis);
+}
+$('tl').addEventListener('input', () => { stopPlay(); setReplay(+$('tl').value); });
+$('live').addEventListener('click', backToLive);
+$('play').addEventListener('click', () => {
+  if (timer) { stopPlay(); return; }
+  let h = +$('tl').value >= 24 || replayT == null ? -48 : +$('tl').value;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  setReplay(h); $('play').textContent = '❚❚ Pause';
+  timer = setInterval(() => { h += 1; if (h > 24) { stopPlay(); return; } setReplay(h); }, reduce ? 600 : 220);
+});
+
+// ---------- NASA satellite imagery (GIBS, VIIRS true colour) ----------
+let satLayer = null;
+(() => {
+  const sel = $('satDate');
+  for (let d = 0; d < 3; d++) {
+    const day = new Date(Date.now() - d * 86400e3).toISOString().slice(0, 10);
+    sel.add(new Option(d === 0 ? `Today (${day})` : d === 1 ? `Yesterday (${day})` : day, day));
+  }
+})();
+function updateSat() {
+  if (satLayer) { map.removeLayer(satLayer); satLayer = null; }
+  $('satDate').hidden = !$('showSat').checked;
+  if (!$('showSat').checked) return;
+  satLayer = L.tileLayer(`https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_CorrectedReflectance_TrueColor/default/${$('satDate').value}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`, {
+    maxNativeZoom: 9, maxZoom: 13, opacity: 0.9, attribution: 'Imagery: NASA GIBS, VIIRS S-NPP',
+  }).addTo(map);
+  satLayer.bringToBack(); baseLayer.bringToBack();
+}
+$('showSat').addEventListener('change', updateSat);
+$('satDate').addEventListener('change', updateSat);
+
+// ---------- statewide priorities ----------
+async function loadPriorities() {
+  try {
+    const pr = await get('/api/priorities');
+    const tb = $('prio'); tb.innerHTML = '';
+    if (!pr.districts.length) { tb.innerHTML = '<tr><td colspan="6" class="muted">No farm-fire smoke is reaching any of these cities right now.</td></tr>'; return; }
+    pr.districts.forEach((d, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td class="rank">${i + 1}</td>
+        <td><b>${esc(d.district)}</b><div class="cities">${esc(d.cities.join(', '))}</div></td>
+        <td class="num">${d.people_lakh} lakh</td>
+        <td class="num">+${d.aqi_points_now} now${d.aqi_points_incoming ? `<div class="cities">+${d.aqi_points_incoming} coming</div>` : ''}</td>
+        <td class="num">${d.satellite_fires}<span class="muted"> sat</span>${d.citizen_reports ? `<div class="cities">${d.citizen_reports} citizen</div>` : ''}</td>
+        <td><button type="button" data-a="show">Show</button> <button type="button" data-a="verify">Verify</button></td>`;
+      tr.querySelector('[data-a=verify]').addEventListener('click', () => { $('vDist').value = d.district; verify(); $('sat').scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+      tr.querySelector('[data-a=show]').addEventListener('click', () => {
+        const pts = fires.filter((f) => f.district === d.district).map((f) => [f.lat, f.lon]);
+        if (pts.length) map.fitBounds(pts, { padding: [40, 40], maxZoom: 10 }); else homeView();
+        $('map').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+      tb.appendChild(tr);
+    });
+    $('prioNote').textContent = `People exposed: ${pr.population_note}. Updated ${fmt(pr.generated_at)} IST.`;
+    const vd = $('vDist'), keep = vd.value; vd.innerHTML = '';
+    const names = [...new Set([...pr.districts.map((d) => d.district), ...fires.map((f) => f.district)])].filter((n) => n && !/^Outside /.test(n));
+    for (const n of names) vd.add(new Option(n, n));
+    if (keep && names.includes(keep)) vd.value = keep;
+  } catch (e) { $('prio').innerHTML = `<tr><td colspan="6" class="muted">Could not rank districts: ${esc(e.message)}</td></tr>`; }
+}
+
+// ---------- Ask DhuanTrace (Gemini, grounded) ----------
+const SUGGEST = {
+  en: ['Which fires should be stopped tonight?', 'When will AQI peak tomorrow?', 'Where is this smoke coming from?'],
+  hi: ['आज रात कौन सी आग रोकनी चाहिए?', 'कल AQI सबसे ज़्यादा कब होगा?', 'यह धुआँ कहाँ से आ रहा है?'],
+};
+function setChips(list) {
+  const c = $('chips'); c.innerHTML = '';
+  for (const q of list) { const b = document.createElement('button'); b.type = 'button'; b.textContent = q; b.onclick = () => { $('q').value = q; ask(); }; c.appendChild(b); }
+}
+async function ask() {
+  const question = $('q').value.trim();
+  if (!question) { $('answer').innerHTML = '<span class="muted">Type or speak a question first.</span>'; return; }
+  $('askBtn').disabled = true; $('answer').innerHTML = '<span class="muted">Thinking…</span>'; $('answerBy').textContent = '';
+  try {
+    const body = place.city ? { city: place.city } : { lat: place.lat, lon: place.lon, name: place.name };
+    const r = await get('/api/ask', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...body, question, lang: $('lang').value }) });
+    $('answer').textContent = r.answer;
+    $('answerBy').textContent = r.by === 'gemini' ? `Answered by ${r.model} from this page's data` : `Summary without Gemini (${r.reason || 'Gemini not connected'})`;
+    if (r.follow_ups && r.follow_ups.length) setChips(r.follow_ups);
+  } catch (e) { $('answer').textContent = 'Could not answer: ' + e.message; }
+  finally { $('askBtn').disabled = false; }
+}
+$('askForm').addEventListener('submit', (e) => { e.preventDefault(); ask(); });
+
+const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+const VOICE = { en: 'en-IN', hi: 'hi-IN', mr: 'mr-IN', ur: 'ur-IN', bn: 'bn-IN', ta: 'ta-IN', te: 'te-IN', gu: 'gu-IN' };
+if (!Rec) $('mic').hidden = true;
+else {
+  let rec = null;
+  $('mic').addEventListener('click', () => {
+    if (rec) { rec.stop(); return; }
+    rec = new Rec(); rec.lang = VOICE[$('lang').value] || 'hi-IN'; rec.interimResults = true;
+    $('mic').classList.add('on'); $('q').placeholder = 'Listening…';
+    rec.onresult = (e) => { $('q').value = [...e.results].map((r) => r[0].transcript).join(''); if (e.results[e.results.length - 1].isFinal) ask(); };
+    rec.onerror = () => { $('q').placeholder = 'Microphone not available. Type the question instead.'; };
+    rec.onend = () => { rec = null; $('mic').classList.remove('on'); if ($('q').placeholder === 'Listening…') $('q').placeholder = 'e.g. Kal AQI kab sabse zyada hoga?'; };
+    rec.start();
+  });
+}
+
+
+// ---------- satellite verification ----------
+const COMPASS = (b) => ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round((((b % 360) + 360) % 360) / 45) % 8];
+async function verify() {
+  const d = $('vDist').value; if (!d) return;
+  $('vBtn').disabled = true; $('verdict').innerHTML = ''; $('vText').textContent = ''; $('vNote').textContent = '';
+  $('sat').innerHTML = '<div class="empty">Fetching the NASA image and asking Gemini…</div>';
+  try {
+    const v = await get(`/api/verify?district=${encodeURIComponent(d)}`);
+    const arrow = (() => {
+      const r = (v.model_bearing_deg * Math.PI) / 180, cx = 50, cy = 50, L = 30;
+      const x2 = cx + Math.sin(r) * L, y2 = cy - Math.cos(r) * L;
+      return `<svg viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0L10,5L0,10z" fill="#5DB3D1"/></marker></defs>
+        <line x1="${cx}" y1="${cy}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#5DB3D1" stroke-width="1.6" marker-end="url(#ah)"/></svg>`;
+    })();
+    $('sat').innerHTML = `<img src="${v.image}" alt="NASA VIIRS true-colour image around ${esc(v.district)} on ${esc(v.date)}">${arrow}` +
+      v.fires.map((f) => `<i class="fx" style="left:${f.x}%;top:${f.y}%"></i>`).join('');
+    const r = v.result || {}; const chips = [];
+    if (r.unavailable) chips.push(`<span>${/busy/.test(r.note || '') ? 'Gemini busy' : 'Gemini not available'}</span>`);
+    else {
+      chips.push(r.image_usable === false ? '<span class="no">Image not usable (cloud or gap)</span>' : '<span class="yes">Image usable</span>');
+      chips.push(r.smoke_visible ? '<span class="yes">Smoke visible</span>' : '<span class="no">No clear smoke</span>');
+      if (r.plume_bearing_deg != null) chips.push(`<span>Plume drifts ${COMPASS(r.plume_bearing_deg)} (${Math.round(r.plume_bearing_deg)}°)</span>`);
+      chips.push(`<span>Model says ${COMPASS(v.model_bearing_deg)} (${v.model_bearing_deg}°)</span>`);
+      if (r.agrees_with_model === true) chips.push('<span class="yes">Agrees with wind model</span>');
+      if (r.agrees_with_model === false) chips.push('<span class="no">Disagrees with wind model</span>');
+      chips.push(`<span>Confidence ${Math.round((r.confidence || 0) * 100)}%</span>`);
+    }
+    $('verdict').innerHTML = chips.join('');
+    $('vText').textContent = r.unavailable ? `Satellite image loaded. ${/not connected/.test(r.note || '') ? 'Add GEMINI_API_KEY to let Gemini judge the plume.' : (r.note || 'Gemini could not judge the plume right now.')}` : ($('lang').value === 'hi' && r.explanation_hi ? r.explanation_hi : r.explanation);
+    $('vNote').textContent = `${v.source}, ${v.date}. ${v.fire_count} detections that day; wind ${v.wind_speed_kmh} km/h.${v.sample_fires ? ' Fire points are sample data until FIRMS_MAP_KEY is added, so they may not match real smoke.' : ''}${r.model ? ' Judged by ' + r.model + '.' : ''}`;
+  } catch (e) {
+    $('sat').innerHTML = `<div class="empty">Could not run the satellite check: ${esc(e.message)}</div>`;
+  } finally { $('vBtn').disabled = false; }
+}
+$('vBtn').addEventListener('click', verify);
+
+// ---------- live accuracy ----------
+// ---------- forecast ledger ----------
+async function loadLedger() {
+  try {
+    const L = await get('/api/ledger');
+    const o = L.overall;
+    if (!o.n) {
+      $('ldMode').innerHTML = L.mode === 'live'
+        ? `<b>Collecting.</b> ${L.written} forecasts written so far, ${L.pending} waiting for their hour. The first 3-hour checks appear about 3 hours after the app starts with live CPCB data.`
+        : '<b>Waiting for live CPCB data.</b> Add DATA_GOV_API_KEY: the ledger only scores against real CPCB readings, never against sample data.';
+      $('ldBig').hidden = true; $('ldTable').hidden = true; $('ldNote').textContent = L.note; return;
+    }
+    $('ldMode').innerHTML = `<b>${o.n} forecasts checked</b> in ${L.cities.length} cities since ${fmtDay(L.first_issued)} IST. ${L.pending} more waiting for their hour.`;
+    $('ldBig').hidden = false;
+    $('ldDt').textContent = '±' + o.mae_dhuantrace;
+    $('ldSkill').textContent = o.skill_vs_persistence == null ? '–' : (o.skill_vs_persistence > 0 ? '+' : '') + o.skill_vs_persistence + '%';
+    $('ldCover').textContent = o.range_coverage == null ? '–' : o.range_coverage + '%';
+    $('ldTable').hidden = false;
+    $('ldRows').innerHTML = L.by_lead.map((b) => b.n
+      ? `<tr><td>${b.lead} h</td><td class="num">${b.n}</td><td class="num">±${b.mae_dhuantrace}</td><td class="num">±${b.mae_cams}</td><td class="num">±${b.mae_persistence}</td><td class="num">${b.category_hit_dhuantrace}%</td></tr>`
+      : `<tr><td>${b.lead} h</td><td class="num">0</td><td colspan="4" class="muted">not due yet</td></tr>`).join('');
+    const verdict = o.skill_vs_persistence > 0 ? 'beats' : 'does not yet beat';
+    $('ldNote').textContent = `DhuanTrace ${verdict} the simple "AQI stays as it is" forecast (±${o.mae_persistence}). Range: ${L.error_model === 'ledger' ? 'calibrated from these checks' : 'default until 30 checks'}. ${L.note}`;
+  } catch (e) { $('ldMode').textContent = 'Could not load the ledger: ' + e.message; }
+}
+
+// ---------- inter-state smoke ----------
+async function loadInterstate() {
+  try {
+    const I = await get('/api/interstate');
+    const cell = (x) => x ? `+${x.aqi_points_now} now${x.aqi_points_incoming ? `, +${x.aqi_points_incoming} coming` : ''}<div class="cities">${esc(x.cities.join(', '))} · ${x.people_lakh} lakh people</div>` : '<span class="muted">none</span>';
+    $('isRows').innerHTML = I.states.length
+      ? I.states.map((s) => `<tr><td><b>${esc(s.state)}</b></td><td class="num">${cell(s.into_mp)}</td><td class="num">${cell(s.from_mp)}</td></tr>`).join('')
+      : '<tr><td colspan="3" class="muted">No smoke is crossing the border right now.</td></tr>';
+    $('isOut').innerHTML = I.outbound.length
+      ? `<b>${esc(REGION ? REGION.short : 'MP')} smoke in cities across the border:</b> ` + I.outbound.map((o) => `${esc(o.city)} (${esc(o.state)}) +${o.aqi_points_now + o.aqi_points_incoming}${o.mp_districts.length ? ` from ${esc(o.mp_districts.join(', '))}` : ''}`).join(' · ')
+      : '';
+    $('isNote').textContent = `${I.units}. ${I.border_note}`;
+  } catch (e) { $('isRows').innerHTML = `<tr><td colspan="3" class="muted">Could not compute: ${esc(e.message)}</td></tr>`; }
+}
+
+async function loadSkill() {
+  try {
+    const k = await get('/api/skill');
+    $('kMae').textContent = k.mae != null ? '±' + k.mae : '–';
+    $('kBand').textContent = k.same_category_pct != null ? k.same_category_pct + '%' : '–';
+    $('kBias').textContent = k.bias != null ? (k.bias > 0 ? '+' : '') + k.bias : '–';
+    $('skillRows').innerHTML = k.stations.slice(0, 6).map((r) => `<tr><td>${esc(r.station)}</td><td class="num">${r.cpcb}</td><td class="num">${r.model}</td><td class="num">${r.diff > 0 ? '+' : ''}${r.diff}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">No stations to compare yet.</td></tr>';
+    $('skillNote').textContent = `${k.n} stations compared, ${k.within_one_category_pct}% within one CPCB category.` +
+      (k.mode === 'live' ? ' Station values are live CPCB readings.' : ' Station values are sample data until DATA_GOV_API_KEY is added, so these numbers are not a real accuracy test yet.');
+  } catch (e) { $('skillNote').textContent = 'Could not compute accuracy: ' + e.message; }
+}
+
+
+// ---------- A: hidden hotspots ----------
+let hotData = [];
+function hotLayer() {
+  layers.hot.clearLayers();
+  if (!$('showHot').checked) return;
+  for (const h of hotData) {
+    L.marker([h.lat, h.lon], { icon: L.divIcon({ className: '', html: '<div class="hot-pin"></div>', iconSize: [16, 16], iconAnchor: [8, 8] }) })
+      .bindPopup(`<div class="pop"><b>Hidden hotspot: ${esc(h.likely_source)}</b><br>${esc(h.point)} · near ${esc(h.near || h.district)} · confidence ${Math.round(h.confidence * 100)}%<ul style="margin:6px 0 0;padding-left:16px">${h.evidence.map((e) => `<li>${esc(e)}</li>`).join('')}</ul></div>`)
+      .addTo(layers.hot);
+  }
+}
+// Satellite evidence under each hotspot: the NASA layer itself, the spot circle, and the verdict
+const SAT_VERDICT = { supports: ['yes', 'More over the spot'], weak: ['', 'Slightly more'], no_local_excess: ['no', 'No local excess'], no_data: ['', 'No clear view'], unavailable: ['', 'Not reachable'] };
+function satBlock(s) {
+  if (!s) return '';
+  if (s.pending) return `<span class="hint">🛰 ${esc(s.note)}</span>`;
+  if (s.unavailable) return `<span class="hint">${esc(s.note)}</span>`;
+  const one = (x) => {
+    const [cls, word] = SAT_VERDICT[x.verdict] || ['', x.verdict];
+    if (!x.image) return `<div class="satcell"><div class="satimg empty">${esc(word)}</div><b>${esc(x.measure)}</b><span class="hint">${esc(x.note || '')}</span></div>`;
+    const r = (x.spot_radius_km / x.ring_km[1]) * 50;
+    return `<div class="satcell"><div class="satimg"><img src="${esc(x.image)}" alt="${esc(x.measure)} around the spot, ${esc(x.date)}" loading="lazy"><i style="width:${2 * r}%;height:${2 * r}%"></i></div>
+      <b>${esc(x.measure)}</b><span class="verdict"><span class="${cls}">${esc(word)}</span></span>
+      <span class="small num">${x.over_spot} over spot · ${x.around} around${x.unit ? ' ' + esc(x.unit) : ''}</span><span class="hint">${esc(x.source)}, ${esc(x.date)}</span></div>`;
+  };
+  return `<div class="satrow">${one(s.aod)}${one(s.no2)}</div>`;
+}
+let hotRetry = null, hotTries = 0;
+async function loadHotspots() {
+  try {
+    const d = await get('/api/hotspots'); hotData = d.hotspots; hotLayer();
+    // Satellite checks finish in the background: look again until they are all in (at most ~10 minutes)
+    clearTimeout(hotRetry);
+    if (d.hotspots.some((h) => h.satellite && h.satellite.pending) && hotTries++ < 20) hotRetry = setTimeout(loadHotspots, 30e3);
+    const box = $('hotList');
+    box.innerHTML = d.hotspots.length ? '' : '<p class="hint" style="margin:0">No unexplained pollution right now: every measuring point is close to what the model and farm-fire smoke explain.</p>';
+    for (const h of d.hotspots.slice(0, 6)) {
+      const el = document.createElement('div'); el.className = 'item';
+      el.innerHTML = `<div class="top"><b>${esc(h.likely_source)} · near ${esc(h.near || h.district)}</b><span>${h.excess != null ? `<span class="badge f">+${h.excess} AQI unexplained</span>` : ''}<span class="badge">${Math.round(h.confidence * 100)}% confidence</span> <button type="button">Show</button></span></div>
+        <span class="small muted">${esc(h.point)} (${esc(h.point_kind)})${h.observed != null ? ` · reads ${h.observed}, model expects ${h.expected}` : ''}</span>
+        <ul>${h.evidence.slice(1).filter((e) => !/^Satellite check:/.test(e)).map((e) => `<li>${esc(e)}</li>`).join('')}</ul>${satBlock(h.satellite)}`;
+      el.querySelector('button').onclick = () => { map.setView([h.lat, h.lon], 11); $('map').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+      box.appendChild(el);
+    }
+    $('hotNote').textContent = `${d.points_checked} measuring points checked. Typical gap between reading and model: ${d.median_residual ?? '–'} ± ${d.spread ?? '–'} AQI points. Industrial area locations are approximate.`;
+  } catch (e) { $('hotList').innerHTML = `<p class="hint">Could not check hotspots: ${esc(e.message)}</p>`; }
+}
+$('showHot').addEventListener('change', hotLayer);
+
+// ---------- D: citizen sensors ----------
+let sensorData = [];
+function sensorLayer() {
+  layers.sensors.clearLayers();
+  if (!$('showSensors').checked) return;
+  for (const r of sensorData) {
+    L.marker([r.lat, r.lon], { icon: L.divIcon({ className: '', html: `<div class="sensor-pin" style="background:${r.category.color}"></div>`, iconSize: [12, 12], iconAnchor: [6, 6] }) })
+      .bindPopup(`<div class="pop"><b>Citizen sensor ${esc(r.device)}</b>${r.example ? ' <span class="badge">example</span>' : ''}<br>
+        PM2.5 ${r.pm25_raw} raw → <b>${r.pm25_cal}</b> µg/m³ calibrated (×${r.factor}, from ${r.calibration_basis} earlier readings)<br>
+        AQI ${r.aqi} (${esc(r.category.name)}) · ${esc(fmtDay(r.ts))} IST${r.station ? `<br><span class="muted">Nearest CPCB: ${esc(r.station.name)}, ${r.station.km} km, PM2.5 ≈ ${r.station.pm25}</span>` : ''}</div>`)
+      .addTo(layers.sensors);
+  }
+}
+async function loadSensors() { try { sensorData = await get('/api/sensors'); sensorLayer(); } catch {} }
+$('showSensors').addEventListener('change', sensorLayer);
+$('sform').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!reportLoc) { $('smsg').textContent = 'Set the location first: click the map and choose Report smoke here, or use your location.'; return; }
+  $('sSend').disabled = true;
+  try {
+    const r = await get('/api/sensors', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...reportLoc, device: $('sDev').value, pm25: $('sPm25').value, pm10: $('sPm10').value }) });
+    $('smsg').textContent = r.calibration_basis
+      ? `Saved. Calibrated PM2.5 ${r.pm25_cal} µg/m³ (AQI ${r.aqi}, ${r.category.name}) using this device's ${r.calibration_basis} earlier readings.`
+      : `Saved as AQI ${r.aqi} (${r.category.name}). This is the device's first reading${r.station ? `; it was matched with ${r.station.name}, so the next readings will be calibrated` : ' and no CPCB station is within 25 km, so it stays uncalibrated'}.`;
+    $('sPm25').value = ''; $('sPm10').value = '';
+    await loadSensors(); loadHotspots();
+  } catch (err) { $('smsg').textContent = err.message; }
+  finally { $('sSend').disabled = false; }
+});
+
+// ---------- B: economic corridors ----------
+function spark(series) {
+  if (!series.length) return '';
+  const W = 400, H = 70, t0 = series[0].t, t1 = series[series.length - 1].t, max = Math.max(220, ...series.map((p) => p.aqi)) * 1.05;
+  const x = (t) => 4 + ((t - t0) / (t1 - t0 || 1)) * (W - 8), y = (v) => H - 4 - (v / max) * (H - 8);
+  const lines = [100, 200, 300].filter((v) => v < max).map((v) => `<line x1="4" x2="${W - 4}" y1="${y(v)}" y2="${y(v)}" stroke="${css('--grid')}"/><text x="${W - 6}" y="${y(v) - 2}" text-anchor="end" font-size="9" fill="${css('--muted')}">${v}</text>`).join('');
+  const pts = series.map((p) => `${x(p.t).toFixed(1)},${y(p.aqi).toFixed(1)}`).join(' ');
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" role="img" aria-label="Corridor AQI over the next 48 hours">${lines}<polyline points="${pts}" fill="none" stroke="${css('--fire')}" stroke-width="2"/></svg>`;
+}
+let corrData = [];
+function corrLayer() {
+  layers.corr.clearLayers();
+  if (!$('showCorr').checked) return;
+  const col = { warning: '#D12B3F', watch: '#D9A91E', ok: '#3AA757' };
+  for (const c of corrData) {
+    L.polyline(c.stops.map((s) => [s.lat, s.lon]), { color: col[c.status], weight: 4, dashArray: '8 6', opacity: 0.85 })
+      .bindTooltip(`${c.name}: peak ${c.peak.aqi} (${c.peak.category.name}) near ${c.peak.near}`).addTo(layers.corr);
+  }
+}
+async function loadCorridors() {
+  try {
+    const d = await get('/api/corridors'); corrData = d.corridors; corrLayer();
+    const box = $('corrList'); box.innerHTML = '';
+    const label = { warning: 'Warning', watch: 'Watch', ok: 'OK' };
+    for (const c of d.corridors) {
+      const el = document.createElement('div'); el.className = 'item';
+      el.innerHTML = `<div class="top"><b>${esc(c.name)}</b><span class="stat-chip ${c.status}">${label[c.status]}</span></div>
+        <span class="small">${esc(c.text)}</span>
+        ${c.alerts.length ? `<ul>${c.alerts.map((a) => `<li>${esc(fmtDay(a.t))} IST: ${a.type === 'category' ? `${esc(a.from)} → <b>${esc(a.to)}</b>` : `jump of +${a.rise}`} near ${esc(a.near)} (AQI ${a.aqi})</li>`).join('')}</ul>` : ''}
+        ${spark(c.series)}<span class="hint">${esc(c.note)}</span>`;
+      box.appendChild(el);
+    }
+  } catch (e) { $('corrList').innerHTML = `<p class="hint">Could not forecast corridors: ${esc(e.message)}</p>`; }
+}
+$('showCorr').addEventListener('change', corrLayer);
+
+// Run fn once, when el comes within ~800 px of the screen (or at once where IntersectionObserver is missing)
+function whenNear(el, fn) {
+  if (!el) return;
+  const target = el.closest('section') || el;
+  if (!('IntersectionObserver' in window)) return fn();
+  const io = new IntersectionObserver((ents) => { if (ents.some((e) => e.isIntersecting)) { io.disconnect(); fn(); } }, { rootMargin: '800px 0px' });
+  io.observe(target);
+}
+
+// ---------- judge tour: every Track 02 requirement in about 60 seconds ----------
+const TOUR = [
+  { el: () => $('reqPanel'), t: 'Built for Track 02, line by line', x: 'Each part of the problem statement, what DhuanTrace does for it, a live check against this running app, and the tests that prove it.' },
+  { el: () => $('map').closest('section'), t: 'Satellite, weather and citizen data on one map', x: 'NASA fire detections, CPCB stations, hourly wind and citizen photo reports. Satellites pass at 1:30 p.m.; most farm fires burn after 4 p.m. Citizen photos fill that gap.' },
+  { el: () => $('side'), t: 'Whose smoke is in this city\'s air', x: 'Every fire\'s smoke is followed on the wind for 36 hours. The city sees which districts, and which neighbouring states, its farm-fire smoke comes from, and what share each has.', go: () => { $('city').value = cities[0].id; $('city').dispatchEvent(new Event('change')); } },
+  { el: () => $('chart'), t: 'AQI forecast with an honest range', x: 'CAMS plus smoke from fires the model cannot see, with an 80% range from a wind ensemble and measured error.' },
+  { el: () => $('hotList').closest('section'), t: 'Hidden hotspots, with satellite evidence', x: 'Readings the models cannot explain point to a local source. NASA\'s aerosol and NO₂ layers show whether the satellite also sees more pollution over the spot.' },
+  { el: () => $('corrList').closest('section'), t: 'Spikes along economic corridors', x: 'The worst air along six industrial corridors for 48 hours, with an alert on a category change or a 50-point jump.' },
+  { el: () => $('ldRows').closest('section'), t: 'Accuracy, checked in public', x: 'Every forecast is written down before its time and scored against CPCB after. Nothing is changed afterwards. Compared with CAMS and with "stays the same".' },
+  { el: () => $('fedNetPanel'), t: 'Federated: states share models, not data', x: 'Four separate node programs train one model together. Only five numbers per node cross the network; the coordinator receives zero data rows.', go: () => { if (!$('fnOut').hidden) return; $('fnRun').click(); } },
+  { el: () => $('letter').closest('section'), t: 'Alert to the authority that can act', x: 'Gemini drafts the alert for the Collector of the responsible district, in Hindi or 7 other languages, using only computed numbers. The alert log follows it to the result.', go: () => { $('lang').value = 'hi'; $('draft').click(); } },
+  { el: () => $('isRows').closest('section'), t: 'Open for other cities and states', x: 'Smoke across state borders as an open bulletin, a JSON packet per city, and an OpenAPI description of every endpoint.' },
+];
+let tourI = -1, tourTimer = null, tourPaused = false;
+const TOUR_MS = 6500;
+function tourShow(i) {
+  document.querySelectorAll('.tour-on').forEach((e) => e.classList.remove('tour-on'));
+  if (i < 0 || i >= TOUR.length) return tourEnd();
+  tourI = i;
+  const step = TOUR[i], el = step.el();
+  $('tour').hidden = false;
+  $('tourN').textContent = `${i + 1} / ${TOUR.length}`;
+  $('tourT').textContent = step.t; $('tourX').textContent = step.x;
+  $('tourBar').style.width = `${((i + 1) / TOUR.length) * 100}%`;
+  if (el) { el.classList.add('tour-on'); el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); }
+  if (step.go) try { step.go(); } catch {}
+  clearTimeout(tourTimer);
+  if (!tourPaused) tourTimer = setTimeout(() => tourShow(tourI + 1), TOUR_MS);
+}
+function tourEnd() { clearTimeout(tourTimer); tourI = -1; $('tour').hidden = true; document.querySelectorAll('.tour-on').forEach((e) => e.classList.remove('tour-on')); }
+$('tourBtn').addEventListener('click', () => { tourPaused = false; $('tourPause').textContent = 'Pause'; tourShow(0); });
+$('tourNext').addEventListener('click', () => tourShow(tourI + 1));
+$('tourBack').addEventListener('click', () => tourShow(Math.max(0, tourI - 1)));
+$('tourStop').addEventListener('click', tourEnd);
+$('tourPause').addEventListener('click', () => { tourPaused = !tourPaused; $('tourPause').textContent = tourPaused ? 'Play' : 'Pause'; if (tourPaused) clearTimeout(tourTimer); else tourShow(tourI); });
+document.addEventListener('keydown', (e) => { if (tourI < 0) return; if (e.key === 'Escape') tourEnd(); else if (e.key === 'ArrowRight') tourShow(tourI + 1); else if (e.key === 'ArrowLeft') tourShow(Math.max(0, tourI - 1)); });
+
+// ---------- system health ----------
+const SRC_NAME = { fires: 'NASA FIRMS fires', stations: 'CPCB AQI stations', wind: 'Open-Meteo wind', forecast: 'CAMS air forecast', gemini: 'Google Gemini' };
+async function loadSystem() {
+  try {
+    const d = await get('/api/system');
+    $('sysSources').innerHTML = Object.entries(d.sources).map(([k, v]) => `<tr><td>${esc(SRC_NAME[k] || k)}</td><td><span class="src ${v.mode === 'live' ? 'live' : v.mode === 'error' ? 'error' : ''}"><i></i>${esc(v.mode === 'live' ? 'live' : v.mode === 'error' ? 'error' : 'sample')}</span></td><td class="small">${esc(v.note || '')}</td></tr>`).join('');
+    const h = Math.floor(d.uptime_s / 3600), m = Math.floor((d.uptime_s % 3600) / 60);
+    $('sysUp').textContent = h ? `${h} h ${m} m` : `${m} m`;
+    const routes = Object.entries(d.requests);
+    $('sysReq').textContent = routes.reduce((a, [, r]) => a + r.count, 0);
+    $('sysErr').textContent = routes.reduce((a, [, r]) => a + r.errors_5xx, 0);
+    $('sysRoutes').innerHTML = routes.filter(([k]) => k !== 'static files').slice(0, 8).map(([k, r]) => `<tr><td class="num small">${esc(k)}</td><td class="num">${r.count}</td><td class="num">${r.p50_ms} ms</td><td class="num">${r.p95_ms} ms</td><td class="num">${r.errors_4xx + r.rate_limited}</td></tr>`).join('');
+    $('sysNote').textContent = `Version ${d.version} on Node ${d.node}, ${d.memory_mb} MB memory. Data folder ${d.data_dir_writable ? 'writable' : 'NOT writable: reports and the ledger cannot be saved'}.${d.degraded.length ? ` On sample data: ${d.degraded.map((k) => SRC_NAME[k] || k).join(', ')}.` : ' Every source is live.'} Writes are limited per address (photo reports ${d.rate_limits['/api/reports']} a minute).`;
+  } catch (e) { $('sysNote').textContent = 'Could not load: ' + e.message; }
+}
+$('sysRefresh').addEventListener('click', loadSystem);
+
+// ---------- when satellites look: detections by hour of day (IST) ----------
+// Polar-orbiting satellites pass at about 1:30 a.m. and 1:30 p.m.; farmers burn mostly 4-7 p.m. The live
+// detection times show the blind window directly.
+function drawBlind(list) {
+  const n = new Array(24).fill(0);
+  for (const f of list) n[istHour(f.ts)]++;
+  const total = n.reduce((a, b) => a + b, 0);
+  // Drawn at the panel's real pixel width, so text stays 11 px on a phone and on a wide screen
+  const W = Math.max(300, Math.round($('blindChart').getBoundingClientRect().width || 640)), H = 170, L = 34, R = 8, T = 22, B = 26, bw = (W - L - R) / 24, max = Math.max(1, ...n);
+  $('blindChart').setAttribute('viewBox', `0 0 ${W} ${H}`); $('blindChart').setAttribute('height', H);
+  const y = (v) => T + (H - T - B) * (1 - v / max);
+  const ticks = [0, Math.round(max / 2), max];
+  let svg = `<rect class="win" x="${L + 16 * bw}" y="${T + 4}" width="${4 * bw}" height="${H - T - B - 4}" rx="4"></rect>`
+    + `<text class="lbl" x="${L + 18 * bw}" y="${T - 1}" text-anchor="middle">${W < 480 ? '4–8 p.m.' : 'Burning window 4–8 p.m.'}</text>`;
+  for (const t of ticks) svg += `<line x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}" stroke="var(--grid)" stroke-width="1"></line><text x="${L - 6}" y="${y(t) + 4}" text-anchor="end">${t}</text>`;
+  n.forEach((v, h) => {
+    if (v) { const x = L + h * bw + 1, top = y(v), hgt = H - B - top, r = Math.min(4, hgt / 2, (bw - 2) / 2);
+      svg += `<path class="bar" d="M${x},${H - B} V${top + r} Q${x},${top} ${x + r},${top} H${x + bw - 2 - r} Q${x + bw - 2},${top} ${x + bw - 2},${top + r} V${H - B} Z"><title>${String(h).padStart(2, '0')}:00–${String(h).padStart(2, '0')}:59 IST: ${v} detection${v === 1 ? '' : 's'}</title></path>`; }
+    else svg += `<rect x="${L + h * bw}" y="${T}" width="${bw}" height="${H - T - B}" fill="transparent"><title>${String(h).padStart(2, '0')}:00 IST: no detections</title></rect>`;
+    if (h % 3 === 0) svg += `<text x="${L + h * bw + bw / 2}" y="${H - 8}" text-anchor="middle">${String(h).padStart(2, '0')}</text>`;
+  });
+  $('blindChart').innerHTML = svg;
+  const around = (c) => n[c - 1] + n[c] + n[c + 1];
+  const passes = around(1) + around(13), evening = n[16] + n[17] + n[18] + n[19];
+  const firePill = [...$('status').querySelectorAll('.src')].find((e) => /NASA fires/.test(e.textContent));
+  const live = !!(firePill && firePill.classList.contains('live'));
+  $('blindNote').innerHTML = total
+    ? `<b>${Math.round((100 * passes) / total)}% of ${total} detections</b> came from the two satellite passes around 1:30 a.m. and 1:30 p.m. Between 4 and 8 p.m., when most farmers burn, there ${evening === 1 ? 'was' : 'were'} <b>${evening}</b>. Those evening fires are the ones citizen photos add.${live ? '' : ' (Sample fire data: add FIRMS_MAP_KEY for the live picture.)'}`
+    : 'No fire detections in the last 48 hours.';
+  $('blindRows').innerHTML = n.map((v, h) => `<tr><td class="num">${String(h).padStart(2, '0')}:00</td><td class="num">${v}</td></tr>`).join('');
+}
+
+// ---------- problem statement traceability ----------
+async function loadRequirements() {
+  try {
+    const d = await get('/api/requirements');
+    $('reqRows').innerHTML = d.requirements.map((r) => {
+      const live = d.live[r.id] || {};
+      return `<tr><td class="num">${esc(r.id)}</td><td><b>${esc(r.need)}</b></td>
+        <td><ul>${r.built.slice(0, 1).map((b) => `<li>${esc(b)}</li>`).join('')}${r.built.length > 1 ? `<li class="muted"><details><summary>${r.built.length - 1} more</summary>${r.built.slice(1).map(esc).join('<br>')}</details></li>` : ''}</ul></td>
+        <td class="small"><span class="${live.ok === false ? 'warn' : 'ok'}">${live.ok === false ? '!' : '✓'}</span> ${esc(live.text || '')}</td>
+        <td class="small">${r.tests.length} test groups<br><span class="num muted">${r.api.slice(0, 2).map(esc).join('<br>')}</span></td>
+        <td><button class="btn ghost" type="button" data-go="${esc(r.panels[0])}">Show</button></td></tr>`;
+    }).join('');
+    for (const b of $('reqRows').querySelectorAll('button[data-go]')) b.onclick = () => { const el = $(b.dataset.go); if (el) (el.closest('section') || el).scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+  } catch (e) { $('reqRows').innerHTML = `<tr><td colspan="6" class="muted">Could not load: ${esc(e.message)}</td></tr>`; }
+}
+
+// ---------- A: federated network of separate node processes ----------
+function showFedNet(st) {
+  const r = st.last;
+  if (!r) return;
+  $('fnOut').hidden = false;
+  const modeTxt = { simulation: 'Simulated history at every node (live CPCB rows replace it once the app has logged enough)', live: 'Live CPCB history at every node', mixed: 'Some nodes on live CPCB history, others simulated' }[r.mode] || r.mode;
+  $('fnMode').innerHTML = `<b>${esc(modeTxt)}.</b> ${r.nodes.length} nodes via ${esc(r.network || 'network')}, ${r.rounds} rounds, ${(r.took_ms / 1000).toFixed(1)} s, run at ${esc(fmtDay(r.ran_at))} IST.`;
+  $('fnWire').textContent = r.wire.messages;
+  $('fnRows').textContent = r.wire.raw_rows_received;
+  const nm = r.nodes.filter((n) => n.mae_new_member != null);
+  const avg = (k) => nm.reduce((a, n) => a + n[k], 0) / (nm.length || 1);
+  $('fnNew').textContent = nm.length ? `±${avg('mae_new_member').toFixed(0)} (±${avg('mae_new_member_cams').toFixed(0)})` : '–';
+  const alive = new Map((st.local_nodes || []).map((c) => [c.node, c]));
+  const f = (v) => (v == null ? '–' : '±' + (+v).toFixed(1));
+  $('fnTable').innerHTML = r.nodes.map((n) => { const c = alive.get(n.node); return `<tr><td>${esc(n.node)}<div class="hint">${esc(n.cities.join(', '))}</div></td><td class="num small">${c ? `pid ${c.pid}<br>port ${c.port}` : esc(n.address)}</td><td class="num">${n.train_rows + n.test_rows}</td><td class="num">${f(n.mae_cams)}</td><td class="num">${f(n.mae_local)}</td><td class="num">${f(n.mae_federated)}</td><td class="num">${f(n.mae_personalised)}</td><td class="num">${f(n.mae_new_member)} <span class="hint">vs ${f(n.mae_new_member_cams)}</span></td></tr>`; }).join('');
+  const s = r.summary;
+  $('fnTake').innerHTML = `Errors are average AQI points on each node's own held-out hours. <b>What sharing buys:</b> a node that has never trained gets ±${avg('mae_new_member').toFixed(0)} from the others' model instead of ±${avg('mae_new_member_cams').toFixed(0)} with CAMS alone. A node with days of its own history does about as well alone (±${s.mae_local}) as with the shared model plus a short tuning on its own data (±${s.mae_personalised}); the plain shared model (±${s.mae_federated}) is weaker there because every region's bias is different.`;
+  $('fnFields').innerHTML = `Fields the coordinator received: ${r.wire.fields_received.map((x) => `<span class="badge">${esc(x)}</span>`).join(' ')}. ${(r.wire.bytes_sent / 1024).toFixed(1)} KB sent, ${(r.wire.bytes_received / 1024).toFixed(1)} KB received. ${esc(r.wire.signed)}.${r.unreachable ? ` ${r.unreachable} node(s) did not answer and the run continued without them.` : ''}`;
+  const logs = st.local_nodes && st.local_nodes.length ? st.local_nodes.map((c) => ({ name: `${c.node} · pid ${c.pid}`, lines: c.log.map((l) => l.line.replace(/^\[[^\]]+\] /, '')) }))
+    : [{ name: 'Coordinator', lines: r.events.map((e) => e.m) }];
+  // Fold the repeated "round N: ..." lines into one "rounds a–b: ..." line
+  const fold = (lines) => {
+    const out = [];
+    for (const line of lines) {
+      const m = /^round (\d+): (got .*)$/.exec(line), prev = out[out.length - 1];
+      if (m && prev && prev.rest === m[2]) { prev.to = +m[1]; continue; }
+      out.push(m ? { from: +m[1], to: +m[1], rest: m[2] } : { text: line });
+    }
+    return out.map((o) => o.text || (o.from === o.to ? `round ${o.from}: ${o.rest}` : `rounds ${o.from}–${o.to}: ${o.rest}`));
+  };
+  $('fnLogs').innerHTML = logs.map((l) => `<div><b>${esc(l.name)}</b>${fold(l.lines).slice(-8).map(esc).join('<br>')}</div>`).join('');
+  for (const d of $('fnLogs').children) d.scrollTop = d.scrollHeight;
+}
+async function loadFedNet() { try { showFedNet(await get('/api/fednet')); } catch {} }
+$('fnRun').addEventListener('click', async () => {
+  const b = $('fnRun'); b.disabled = true; $('fnMsg').textContent = 'Starting 4 node processes and training over the network…';
+  try { await get('/api/fednet/run', { method: 'POST' }); await loadFedNet(); loadRequirements(); $('fnMsg').textContent = 'Done.'; }
+  catch (e) { $('fnMsg').textContent = 'Could not run: ' + e.message; }
+  finally { b.disabled = false; }
+});
+
+// ---------- C: federated model ----------
+let fedSim = false, lastModel = null;
+function fedChart(history) {
+  // An <svg> has no .hidden property, so toggle the attribute itself
+  const s = $('fedChart'); if (!history || !history.length) { s.setAttribute('hidden', ''); return; }
+  s.removeAttribute('hidden');
+  const W = 440, H = 120, l = 34, max = Math.max(...history.map((h) => h.mae)) * 1.15, min = 0;
+  const x = (r) => l + ((r - 1) / Math.max(1, history.length - 1)) * (W - l - 10), y = (v) => 10 + (1 - (v - min) / (max - min)) * (H - 34);
+  const pts = history.map((h) => `${x(h.round).toFixed(1)},${y(h.mae).toFixed(1)}`).join(' ');
+  s.innerHTML = `<text x="${l}" y="10" font-size="10" fill="${css('--muted')}">Error on held-out hours, by training round</text>
+    <line x1="${l}" x2="${W - 10}" y1="${H - 24}" y2="${H - 24}" stroke="${css('--grid')}"/>
+    <polyline points="${pts}" fill="none" stroke="${css('--accent')}" stroke-width="2"/>
+    <text x="${l}" y="${H - 8}" font-size="10" fill="${css('--muted')}">round 1</text><text x="${W - 10}" y="${H - 8}" text-anchor="end" font-size="10" fill="${css('--muted')}">round ${history.length}</text>
+    <text x="${l - 4}" y="${y(history[0].mae) + 3}" text-anchor="end" font-size="10" fill="${css('--muted')}">±${history[0].mae}</text>
+    <text x="${W - 10}" y="${y(history[history.length - 1].mae) - 5}" text-anchor="end" font-size="10" fill="${css('--accent')}">±${history[history.length - 1].mae}</text>`;
+}
+async function loadFederated() {
+  try {
+    const m = await get(`/api/federated${fedSim ? '?simulate=1' : ''}`); lastModel = m;
+    $('fedSim').textContent = fedSim ? 'Show live data' : 'Show simulation';
+    if (m.status !== 'trained') {
+      $('fedMode').innerHTML = `<b>Live CPCB data: collecting.</b> ${esc(m.note)} So far: ${m.collection.samples} samples from ${m.collection.nodes} city nodes.`;
+      $('fedBig').hidden = true; $('fedTable').hidden = true; fedChart(null); return;
+    }
+    $('fedMode').innerHTML = m.mode === 'simulation'
+      ? '<b>Simulation:</b> 8 cities with made-up history, to show how the method behaves. Not real measurements.'
+      : `<b>Live CPCB data:</b> ${m.samples} hourly samples from ${m.nodes} city nodes${m.external_nodes ? ` plus ${m.external_nodes} outside node(s)` : ''}.`;
+    $('fedBig').hidden = false;
+    $('fCams').textContent = '±' + m.summary.mae_cams; $('fFed').textContent = '±' + m.summary.mae_federated;
+    $('fUnseen').textContent = `±${m.summary.mae_unseen_city}`;
+    $('fUnseen').title = `CAMS alone for those cities: ±${m.summary.mae_unseen_cams}`;
+    fedChart(m.history);
+    $('fedTable').hidden = false;
+    $('fedRows').innerHTML = m.per_node.map((n) => `<tr><td>${esc(n.node)}</td><td class="num">${n.samples}</td><td class="num">±${n.mae_cams}</td><td class="num">±${n.mae_local}</td><td class="num">±${n.mae_federated}</td></tr>`).join('');
+    $('fedMsg').textContent = `New city test: CAMS alone ±${m.summary.mae_unseen_cams} → shared model ±${m.summary.mae_unseen_city}. A city's own model is best where it has history; sharing helps cities that have none.`;
+  } catch (e) { $('fedMode').textContent = 'Could not load the federated model: ' + e.message; }
+}
+$('fedSim').addEventListener('click', () => { fedSim = !fedSim; loadFederated(); });
+$('copyModel').addEventListener('click', async () => {
+  try { copy(JSON.stringify(await get('/api/model'), null, 2), 'fedMsg'); } catch (e) { $('fedMsg').textContent = e.message; }
+});
+
+// ---------- E: alert log ----------
+let lastDraft = null;
+const NEXT = { drafted: ['sent'], sent: ['acknowledged'], acknowledged: ['action_taken'], action_taken: ['resolved'], resolved: [] };
+const SLABEL = { drafted: 'Drafted', sent: 'Sent', acknowledged: 'Acknowledged', action_taken: 'Action taken', resolved: 'Resolved' };
+async function loadAlerts() {
+  try {
+    const list = await get('/api/alerts'); const box = $('alertList');
+    if (!list.length) { box.innerHTML = '<p class="hint" style="margin:0">No alerts saved yet. Draft one below and press Save to alert log.</p>'; return; }
+    box.innerHTML = '';
+    for (const a of list.slice(0, 8)) {
+      const o = a.outcome || {};
+      const out = o.state === 'measured' ? `Result: AQI changed ${o.observed_change >= 0 ? '+' : ''}${o.observed_change}; weather alone expected ${o.model_expected_change >= 0 ? '+' : ''}${o.model_expected_change} → <b>${esc(o.verdict)}</b> (${o.effect >= 0 ? '+' : ''}${o.effect}).`
+        : o.state === 'too early' ? `Result check at ${esc(fmtDay(o.ready_at))} IST (6 h after action).` : o.state === 'waiting for action' ? 'Result check starts when action is taken.' : '';
+      const el = document.createElement('div'); el.className = 'item';
+      el.innerHTML = `<div class="top"><b>${esc(a.subject)}</b><span class="badge">${esc(SLABEL[a.status])}</span></div>
+        <span class="small muted">${esc(a.to)} · saved ${esc(fmtDay(a.created_at))} IST · AQI then ${a.at_alert.aqi ?? '–'}</span>
+        <span class="small">${out}</span>
+        <div class="statusbar">${NEXT[a.status].map((s) => `<button type="button" data-s="${s}">Mark ${esc(SLABEL[s].toLowerCase())}</button>`).join('')}</div>`;
+      el.querySelectorAll('[data-s]').forEach((b) => b.addEventListener('click', async () => {
+        b.disabled = true;
+        try { await get(`/api/alerts/${encodeURIComponent(a.id)}/status`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ status: b.dataset.s }) }); loadAlerts(); }
+        catch (e) { b.disabled = false; }
+      }));
+      box.appendChild(el);
+    }
+  } catch (e) { $('alertList').innerHTML = `<p class="hint">Could not load alerts: ${esc(e.message)}</p>`; }
+}
+$('saveAlert').addEventListener('click', async () => {
+  if (!lastDraft) return;
+  $('saveAlert').disabled = true;
+  try { await get('/api/alerts', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(lastDraft) }); $('letterBy').textContent = 'Saved to the alert log. Mark it sent once you have sent it.'; loadAlerts(); }
+  catch (e) { $('letterBy').textContent = e.message; $('saveAlert').disabled = false; }
+});
+
+// ---------- installable app ----------
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
+// ---------- start ----------
+(async () => {
+  try {
+    [cities, REGION] = await Promise.all([get('/api/cities'), get('/api/region')]);
+    // Name the region everywhere it appears, in both languages
+    document.querySelectorAll('.rname').forEach((e) => { e.textContent = REGION.name; });
+    $('ncities').textContent = cities.length;
+    const others = REGION.available.filter((x) => x !== REGION.id);
+    $('regionLine').textContent = `Region pack: ${REGION.id} · ${REGION.districts} districts, ${REGION.cities} cities, ${REGION.corridors} corridors` + (others.length ? ` · also ready: ${others.join(', ')} (one JSON file per state, see SCALING.md)` : '');
+    if (window.dtI18n) { window.dtI18n.HI[REGION.name] = REGION.name_hi; window.dtI18n.apply(window.dtI18n.lang); }
+    homeView();
+    const sel = $('city');
+    sel.add(new Option('Custom spot (from map)', ''));
+    sel.options[0].disabled = true;
+    for (const c of cities) sel.add(new Option(c.name, c.id));
+    sel.value = cities[0].id; place = { city: cities[0].id };
+    await loadAll();
+    setChips(SUGGEST.en);
+    $('lang').addEventListener('change', () => setChips(SUGGEST[$('lang').value] || SUGGEST.en));
+    await analyse();
+    await loadPriorities();
+    // Map layers load now; panels further down load when they come near the screen, so the first view is quick
+    loadSensors(); loadHotspots(); loadCorridors();
+    whenNear($('reqPanel'), loadRequirements); whenNear($('skillRows'), loadSkill); whenNear($('ldRows'), loadLedger); whenNear($('isRows'), loadInterstate);
+    whenNear($('fedRows'), loadFederated); whenNear($('fedNetPanel'), loadFedNet); whenNear($('alertList'), loadAlerts);
+    whenNear($('sysPanel'), () => { loadSystem(); setInterval(loadSystem, 60e3); });
+  } catch (e) {
+    $('status').innerHTML = `<span class="src error" title="${esc(e.message)}"><i></i>Server not reachable</span>`;
+  }
+})();
+})();
+</script>
+</body>
+</html>
