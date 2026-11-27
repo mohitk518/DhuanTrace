@@ -1,3 +1,4 @@
+if (process.env.VERCEL && !process.env.DATA_DIR) process.env.DATA_DIR = '/tmp/dhuantrace-data';
 // DhuanTrace app: API routes, static files and the hourly jobs. Started by server.js after saved data is restored.
 const http = require('http');
 const fs = require('fs');
@@ -450,4 +451,5 @@ function scheduleHourly() {
 }
 scheduleHourly();
 
-module.exports = { server };
+module.exports = server;
+module.exports.server = server;
